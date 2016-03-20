@@ -1,0 +1,37 @@
+<table border="1">
+<tr>
+    <th>Name</th>
+    <th>address</th>
+    <th>city</th>
+    <th>notes</th>
+    <th>days</th>
+    <th>start</th>
+    <th>end</th>
+    <th>site</th>
+    <th>neighborhood</th>
+    <th>phone</th>
+    <th>cross</th>
+  </tr>
+  
+{% for happyPlace in happyPlaces %}
+  <tr>
+    <td>{{ happyPlace.name }}</td>
+    <td>{{ happyPlace.address }}</td>
+    <td>{{ happyPlace.city }}</td>
+    <td>{{ happyPlace.notes }}</td>
+    <td>{{ happyPlace.days }}</td>
+    <td>{{ happyPlace.start }}</td>
+    <td>{{ happyPlace.end }}</td>
+    <td>{{ happyPlace.site }}</td>
+    <td>{{ happyPlace.neighborhood }}</td>
+    <td>{{ happyPlace.phone }}</td>
+    <td>{{ happyPlace.cross }}</td>
+  </tr>
+{% endfor %} 
+
+
+</table>
+
+
+<a href="submit"> Click here to add a new HappyPlace! </a>
+
