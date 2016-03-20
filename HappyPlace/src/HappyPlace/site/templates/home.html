@@ -14,6 +14,9 @@
   </tr>
   
 {% for happyPlace in happyPlaces %}
+	{% if happyPlace.active %}
+		
+	{% endif %}
   <tr>
     <td>{{ happyPlace.name }}</td>
     <td>{{ happyPlace.address }}</td>

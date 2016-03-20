@@ -19,7 +19,7 @@ class HappyPlace(models.Model):
     address = models.CharField(max_length=75)
     city = models.CharField(max_length=50)
     notes = models.CharField(max_length=200)
-    days = models.CharField(max_length=20,choices=DAYS)
+    days = models.CharField(max_length=50,choices=DAYS)
     start = models.TimeField()
     end = models.TimeField()
     
