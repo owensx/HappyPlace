@@ -19,7 +19,11 @@ class HappyPlace(models.Model):
     address = models.CharField(max_length=75)
     city = models.CharField(max_length=50)
     notes = models.CharField(max_length=200)
+<<<<<<< HEAD
     days = models.CharField(max_length=100,choices=DAYS)
+=======
+    days = models.CharField(max_length=50,choices=DAYS)
+>>>>>>> origin/master
     start = models.TimeField()
     end = models.TimeField()
     
