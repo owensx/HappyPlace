@@ -18,7 +18,7 @@
 		
 	{% endif %}
   <tr>
-    <td>{{ happyPlace.name }}</td>
+    <td><a href="/happyPlace/{{ happyPlace.id }}"> {{ happyPlace.name }} </a></td>
     <td>{{ happyPlace.address }}</td>
     <td>{{ happyPlace.cross }}</td>
     <td>{{ happyPlace.city }}</td>
@@ -26,7 +26,7 @@
     <td>{{ happyPlace.days }}</td>
     <td>{{ happyPlace.start }}</td>
     <td>{{ happyPlace.end }}</td>
-    <td>{{ happyPlace.site }}</td>
+    <td><a href="{{ happyPlace.site }}"> {{ happyPlace.site }} </a></td>
     <td>{{ happyPlace.neighborhood }}</td>
     <td>{{ happyPlace.phone }}</td>
   </tr>
