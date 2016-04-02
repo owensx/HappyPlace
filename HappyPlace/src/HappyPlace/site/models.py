@@ -9,7 +9,7 @@ DAYS = (('S','Sunday')
     ,('W','Wednesday')
     ,('R','Thursday')
     ,('F','Friday')
-    ,('Y','Saturday'))
+    ,('Y','Saturay'))
 
 class HappyPlace(models.Model):
     id = models.IntegerField(primary_key=True)
