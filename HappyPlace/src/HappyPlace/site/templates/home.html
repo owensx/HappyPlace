@@ -2,6 +2,7 @@
 <tr>
     <th>Name</th>
     <th>address</th>
+    <th>cross</th>
     <th>city</th>
     <th>notes</th>
     <th>days</th>
@@ -10,7 +11,6 @@
     <th>site</th>
     <th>neighborhood</th>
     <th>phone</th>
-    <th>cross</th>
   </tr>
   
 {% for happyPlace in happyPlaces %}
@@ -20,6 +20,7 @@
   <tr>
     <td>{{ happyPlace.name }}</td>
     <td>{{ happyPlace.address }}</td>
+    <td>{{ happyPlace.cross }}</td>
     <td>{{ happyPlace.city }}</td>
     <td>{{ happyPlace.notes }}</td>
     <td>{{ happyPlace.days }}</td>
@@ -28,7 +29,6 @@
     <td>{{ happyPlace.site }}</td>
     <td>{{ happyPlace.neighborhood }}</td>
     <td>{{ happyPlace.phone }}</td>
-    <td>{{ happyPlace.cross }}</td>
   </tr>
 {% endfor %} 
 
