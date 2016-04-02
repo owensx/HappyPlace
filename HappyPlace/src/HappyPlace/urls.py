@@ -8,6 +8,7 @@ urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
     
+    url(r'^happyPlace/(?P<happyPlaceId>\d+)', 'HappyPlace.site.views.HappyPlaceView', name='viewHappyPlace'),
     url(r'^submit', 'HappyPlace.site.views.AddHappyPlace', name='add'),
     url(r'^submit/', 'HappyPlace.site.views.AddHappyPlace', name='add'),
     url(r'^', 'HappyPlace.site.views.Home', name='home'),

@@ -43,6 +43,13 @@ def AddHappyPlace(request):
     context = {'form' : form}        
     return render(request, 'addHappyPlace.html', context)
     
+def HappyPlaceView(request, happyPlaceId):
+    happyPlace = get_object_or_404(HappyPlace ,pk=happyPlaceId)
+    
+    context = {'happyPlace' : happyPlace}
+    return render(request, 'happyPlace.html', context)
+        
+
 def Home(request):
     context = {'happyPlaces' : HappyPlace.objects.all()}
     return render(request, 'home.html', context)
