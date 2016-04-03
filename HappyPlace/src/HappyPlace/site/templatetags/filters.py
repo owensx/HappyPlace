@@ -6,6 +6,6 @@ register = template.Library()
 @register.filter(name='stripHttp')
 @stringfilter
 def stripHttp(value):
-    value.find('http://')
-    return value[7:]
+    value = value[7:]
+    return value if not value.startswith('www') else value[4:]
 
