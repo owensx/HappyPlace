@@ -17,6 +17,9 @@ def AddHappyPlace(request):
             while HappyPlace.objects.filter(id=idToInsert):
                 idToInsert = uuid4().int % 1000000000
                 
+            if not form.cleaned_data['site'].startswith('http'):
+                form.cleaned_data['site'] = 'http://' + form.cleaned_data['site']
+                
             happyPlace = HappyPlace(
                         id=idToInsert
                       , name=form.cleaned_data['name']

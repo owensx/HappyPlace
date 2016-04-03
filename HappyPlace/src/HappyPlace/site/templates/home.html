@@ -1,3 +1,5 @@
+{% load filters %}
+
 <table border="1">
 <tr>
     <th>Name</th>
@@ -26,7 +28,7 @@
     <td>{{ happyPlace.days }}</td>
     <td>{{ happyPlace.start }}</td>
     <td>{{ happyPlace.end }}</td>
-    <td><a href="{{ happyPlace.site }}"> {{ happyPlace.site }} </a></td>
+    <td><a href="{{ happyPlace.site }}"> {{ happyPlace.site|stripHttp }} </a></td>
     <td>{{ happyPlace.neighborhood }}</td>
     <td>{{ happyPlace.phone }}</td>
   </tr>
@@ -34,6 +36,7 @@
 
 
 </table>
+
 
 
 <a href="submit"> Click here to add a new HappyPlace! </a>
