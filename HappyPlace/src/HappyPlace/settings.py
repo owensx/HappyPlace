@@ -59,11 +59,10 @@ WSGI_APPLICATION = 'HappyPlace.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'happyplace',
-        'USER': 'root',
+        'NAME': 'owensx$happyplace',
+        'USER': 'owensx',
         'PASSWORD': 'mct4)Fsh',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'HOST': 'owensx.mysql.pythonanywhere-services.com',
     }
 }
 
