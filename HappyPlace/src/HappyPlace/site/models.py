@@ -28,7 +28,9 @@ class HappyPlace(models.Model):
     neighborhood = models.CharField(max_length=50, null=True)
     phone = models.CharField(max_length=50, null=True)
     cross = models.CharField(max_length=50, null=True)
-        
+    
+    lattitude = models.FloatField(null=True)
+    longitude = models.FloatField(null=True)
     active = models.BooleanField(default=False)
 
     def __str__(self):

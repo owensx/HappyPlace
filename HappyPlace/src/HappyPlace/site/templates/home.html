@@ -97,7 +97,9 @@
             </td>
             <td colspan="3">
                	{{ happyPlace.address }}</br>
-                <a href="https://www.google.com/maps/dir//40.739422,-74.002097/@40.739422,-74.002097,17z"> Get Directions </a></br></br>
+               	{% if happyPlace.lattitude != null and happyPlace.longitude != null %}
+                	<a href="https://www.google.com/maps/dir//{{ happyPlace.lattitude }},{{ happyPlace.longitude }}/@{{ happyPlace.lattitude }},{{ happyPlace.longitude }},17z"> Get Directions </a></br></br>
+                {% endif %}
                	{{ happyPlace.phone }}</br>
                	<a href="{{ happyPlace.site }}"> {{ happyPlace.site|beautifyUrl }} </a>
             </td>
