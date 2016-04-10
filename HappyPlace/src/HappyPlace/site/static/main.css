@@ -32,7 +32,7 @@
 #report div.up { background-position:0px 0px;}
 
 table a:link {
-	color: #666;
+	color: #bd5a35;
 	font-weight: bold;
 	text-decoration:none;
 }
@@ -43,7 +43,7 @@ table a:visited {
 }
 table a:active,
 table a:hover {
-	color: #bd5a35;
+	color: #7cb8e2;
 	text-decoration:underline;
 }
 table {
