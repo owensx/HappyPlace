@@ -23,9 +23,9 @@ def beautifyUrl(value):
 
 @register.filter(name='beautifyDays')
 def beautifyDays(value):
-    output = '//  ';
+    output = '|  ';
     
     for dayString in ast.literal_eval(value):
-        output += DAYSMAP[dayString] + '  //  '
+        output += DAYSMAP[dayString] + '  |  '
         
     return output

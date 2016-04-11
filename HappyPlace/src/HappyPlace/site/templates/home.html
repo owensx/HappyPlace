@@ -82,7 +82,7 @@
 		
 		{% endif %}
         <tr>
-            <td>{{ happyPlace.name }} </a></td>
+            <td>{{ happyPlace.name }}</td>
             <td>{{ happyPlace.neighborhood }}</td>
             <td>{{ happyPlace.days|beautifyDays }}</td>
             <td>{{ happyPlace.start }} - {{ happyPlace.end }}</td>
@@ -95,7 +95,7 @@
             </td><td colspan="1">
                 {{ happyPlace.notes }}
             </td>
-            <td colspan="3">
+            <td colspan="2">
                	{{ happyPlace.address }}</br>
                	{% if happyPlace.lattitude != null and happyPlace.longitude != null %}
                 	<a href="https://www.google.com/maps/dir//{{ happyPlace.lattitude }},{{ happyPlace.longitude }}/@{{ happyPlace.lattitude }},{{ happyPlace.longitude }},17z"> Get Directions </a></br></br>
