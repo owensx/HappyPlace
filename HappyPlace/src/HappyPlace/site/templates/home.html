@@ -29,84 +29,67 @@
 </head>
 
 <body>
-<!--
-<table border="1">
-<tr>
-    <th>Name</th>
-    <th>address</th>
-    <th>cross</th>
-    <th>city</th>
-    <th>notes</th>
-    <th>days</th>
-    <th>start</th>
-    <th>end</th>
-    <th>site</th>
-    <th>neighborhood</th>
-    <th>phone</th>
-  </tr>
-  
-{% for happyPlace in happyPlaces %}
-	{% if happyPlace.active %}
-		
-	{% endif %}
-  <tr>
-    <td><a href="/happyPlace/{{ happyPlace.id }}"> {{ happyPlace.name }} </a></td>
-    <td>{{ happyPlace.address }}</td>
-    <td>{{ happyPlace.cross }}</td>
-    <td>{{ happyPlace.city }}</td>
-    <td>{{ happyPlace.notes }}</td>
-    <td>{{ happyPlace.days }}</td>
-    <td>{{ happyPlace.start }}</td>
-    <td>{{ happyPlace.end }}</td>
-    <td><a href="{{ happyPlace.site }}"> {{ happyPlace.site|beautifyUrl }} </a></td>
-    <td>{{ happyPlace.neighborhood }}</td>
-    <td>{{ happyPlace.phone }}</td>
-  </tr>
-{% endfor %} 
 
-
-</table>
-
--->
 <div id = "tableContainer" cellspacing='0' >
  <table id="report">
         <tr>
             <th>Name</th>
     		<th>Neighborhood</th>
-    		<th>Days</th>
-    		<th>The Happy Hours</th>
+    		<th>Location</th>
+            <th></th>
+            <th></th>
+            <th></th>
             <th></th>
         </tr>
         {% for happyPlace in happyPlaces %}
-        {% if happyPlace.active %}
-		
-		{% endif %}
-        <tr>
-            <td>{{ happyPlace.name }}</td>
-            <td>{{ happyPlace.neighborhood }}</td>
-            <td>{{ happyPlace.days|beautifyDays }}</td>
-            <td>{{ happyPlace.start }} - {{ happyPlace.end }}</td>
-            <td><div class="arrow"></div></td>
-        </tr>
-        <tr>
-            <td colspan="2">
-                {{ happyPlace.days|beautifyDays }}</br>
-                {{ happyPlace.start }} - {{ happyPlace.end }}</br>
-            </td><td colspan="1">
-                {{ happyPlace.notes }}
-            </td>
-            <td colspan="2">
-               	{{ happyPlace.address }}</br>
-               	{% if happyPlace.lattitude != null and happyPlace.longitude != null %}
-                	<a href="https://www.google.com/maps/dir//{{ happyPlace.lattitude }},{{ happyPlace.longitude }}/@{{ happyPlace.lattitude }},{{ happyPlace.longitude }},17z"> Get Directions </a></br></br>
-                {% endif %}
-               	{{ happyPlace.phone }}</br>
-               	<a href="{{ happyPlace.site }}"> {{ happyPlace.site|beautifyUrl }} </a>
-            </td>
-        </tr>
-       {% endfor %} 
+{#        	 {% if happyPlace.active %} 		#}
+	        	<tr>
+	            	<td>{{ happyPlace.name }}</td>
+	            	<td>{{ happyPlace.neighborhood }}</td>
+		            <td> 
+		            	{% if happyPlace.lattitude != null	 and happyPlace.longitude != null %}
+		            		<a href="https://www.google.com/maps/dir//{{ happyPlace.lattitude }},{{ happyPlace.longitude }}/@{{ happyPlace.lattitude }},{{ happyPlace.longitude }},17z">
+		            			{{ happyPlace.address }}
+		            		</a>
+		            		</br>@</br>
+		            		{{ happyPlace.cross }}
+		            	{% else %}	
+		            		<a href="https://www.google.com/maps/dir//{{ happyPlace.address }} {{happyPlace.name}},17z">
+		            			{{ happyPlace.address }}
+		            		</a>
+		            		</br>@</br>
+		            		{{ happyPlace.cross }}
+		            	{% endif %}
+		            </td>
+		            <td></td>
+		            <td></td>
+		            <td></td>
+		            <td><div class="arrow"></div></td>
+		        </tr>
+		        
+		        <tr>
+		        {% for dayPair in dayPairs %}
+		        	<td class="dayOfWeek">
+		        		<p><strong>{{ dayPair.0 }}</strong></p>
+		        		</br>
+		        		</br>
+		        		<p>
+		        		{% for happyHour in happyPlace.happyhour_set.all %}
+		        			{% if dayPair.0 in happyHour.days %}        			
+		        				{{ happyHour.start|formatStart }} - {{ happyHour.end|formatEnd }}
+		        				</br>
+		        				{{ happyHour.notes }}        			
+		        				</br></br>     			 
+		        			{% endif %}
+		        		{% endfor %}
+		        		</p>
+		        	</td>
+		        {% endfor %}			        	
+		        </tr>
+			{# {% endif %} #}
+       	{% endfor %} 
     </table>
 </div>
-<a href="submit"> Click here to add a new HappyPlace! </a>
+<a href="submit"> Tell us your HappyPlace </a>
 </body>
 </html>

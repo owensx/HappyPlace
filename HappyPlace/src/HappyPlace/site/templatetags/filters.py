@@ -29,3 +29,24 @@ def beautifyDays(value):
         output += DAYSMAP[dayString] + '  |  '
         
     return output
+
+@register.filter(name='formatStart')
+def formatStart(value):
+    value = str(value)[1::-1][::-1]
+    value = int(value)
+    value = value if value < 13 else value - 12
+    value = value if not str(value).startswith('0') else value[1:]
+
+    return value
+
+@register.filter(name='formatEnd')
+def formatEnd(value):
+    value = str(value)[1::-1][::-1]
+    value = int(value)
+    
+    ampm = 'pm' if value > 11 else 'am'
+    
+    value = value if value < 13 else value - 12
+    value = value if not str(value).startswith('0') else value[1:]
+                    
+    return str(value)+ampm

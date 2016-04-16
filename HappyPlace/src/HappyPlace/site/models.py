@@ -18,10 +18,6 @@ class HappyPlace(models.Model):
     name = models.CharField(max_length=50)
     address = models.CharField(max_length=75)
     city = models.CharField(max_length=50)
-    notes = models.CharField(max_length=200)
-    days = models.CharField(max_length=100,choices=DAYS)
-    start = models.TimeField()
-    end = models.TimeField()
     
 #optional fields
     site = models.CharField(max_length=50, null=True)
@@ -31,11 +27,22 @@ class HappyPlace(models.Model):
     
     lattitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)
+    
     active = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name.__str__()
 
+class HappyHour(models.Model):
+    id = models.IntegerField(primary_key=True)
+    
+    notes = models.CharField(max_length=200)
+    days = models.CharField(max_length=100,choices=DAYS)
+    start = models.TimeField()
+    end = models.TimeField()
+    
+    happyPlace = models.ForeignKey(HappyPlace)
+    
 class HappyPlaceForm(ModelForm):
     days = forms.MultipleChoiceField(choices=DAYS, widget=forms.CheckboxSelectMultiple())
     start = forms.TimeField(widget=widgets.AdminTimeWidget())
@@ -48,4 +55,4 @@ class HappyPlaceForm(ModelForm):
     
     class Meta:
         model = HappyPlace
-        fields = ['name', 'city', 'neighborhood', 'address', 'cross', 'phone', 'site',  'start', 'end', 'notes']
+        fields = ['name', 'city', 'neighborhood', 'address', 'cross', 'phone', 'site']

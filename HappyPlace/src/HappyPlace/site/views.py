@@ -54,5 +54,8 @@ def HappyPlaceView(request, happyPlaceId):
         
 
 def Home(request):
-    context = {'happyPlaces' : HappyPlace.objects.all()}
+    context = {
+               'happyPlaces' : HappyPlace.objects.all()
+               , 'dayPairs' : DAYS
+               }
     return render(request, 'home.html', context)
