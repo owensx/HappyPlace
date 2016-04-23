@@ -10,10 +10,8 @@
     <script src='https://maps.googleapis.com/maps/api/js?v=3.exp'></script>
     
     <script type="text/javascript">  
-    
-    
-    	
         $(document).ready(function(){
+			$('#submit').attr('disabled', true);
             $("#report tr:odd").addClass("odd");
             $("#report tr:even").addClass("hidden");
             $("#report tr:not(.odd)").hide();
@@ -23,22 +21,56 @@
                 $(this).next("tr").toggle();
                 $(this).find(".arrow").toggleClass("up");
             });
-            
-        });
-    </script> 
+            	
+            $("select#city").change(function() {
+				if ($(this).val() == 'Z') {
+					$("select#neighborhood").html("<option>Select a model</option>");
+					$("select#neighborhood").attr('disabled', true);
+				} else {
+					var url = "/getNeighborhoods/" + $(this).val();
+					$.getJSON(url, function(data) {
+						var options = '<option value="all">All Neighborhoods</option>';
+						for (var i = 0; i < data.length; i++) {
+							options += '<option value="' + data[i] + '">' + data[i] + '</option>';
+						}
+						$("select#neighborhood").html(options);
+						$("select#neighborhood option:first").attr('selected', 'selected');
+						$("select#neighborhood").attr('disabled', false);
+					});
+					
+					$('#submit').attr('disabled', false);
+				}
+       	 	});
+       	 });
+
+	</script>
 </head>
 
-<body>
+<form enctype="multipart/form-data" action="/" method="post">
+	{% csrf_token %}
+	
+	<select name="city" id="city">
+		<option value="Z">Select a City</option>
+		{% for city in cities %}
+			<option value="{{ city }}">{{ city }}</option>
+		{% endfor %}
+	</select>
+	
+	<select name="neighborhood" id="neighborhood" disabled="true">
+		<option>Select a Neighborhood</option>
+	</select>
+	
+	<input id="submit" type="submit" value="Submit">
+</form>
 
+<body>
 <div id = "tableContainer" cellspacing='0' >
  <table id="report">
         <tr>
             <th>Name</th>
     		<th>Neighborhood</th>
-    		<th>Location</th>
-            <th></th>
-            <th></th>
-            <th></th>
+    		<th colspan=2>Location</th>
+            <th colspan=2>Today's Specials</th>
             <th></th>
         </tr>
         {% for happyPlace in happyPlaces %}
@@ -46,24 +78,30 @@
 	        	<tr>
 	            	<td>{{ happyPlace.name }}</td>
 	            	<td>{{ happyPlace.neighborhood }}</td>
-		            <td> 
-		            	{% if happyPlace.lattitude != null	 and happyPlace.longitude != null %}
-		            		<a href="https://www.google.com/maps/dir//{{ happyPlace.lattitude }},{{ happyPlace.longitude }}/@{{ happyPlace.lattitude }},{{ happyPlace.longitude }},17z">
+		            <td colspan=2> 
+{#		            	{% if happyPlace.latitude != 0	 and happyPlace.longitude != 0 %}#}
+{#		            		<a href="https://www.google.com/maps/dir//{{ happyPlace.latitude }},{{ happyPlace.longitude }}/@{{ happyPlace.latitude }},{{ happyPlace.longitude }},17z">#}
+{#		            			{{ happyPlace.address }}#}
+{#		            		</a>#}
+{#		            		</br>@</br>#}
+{#		            		{{ happyPlace.cross }}#}
+{#		            	{% else %}	#}
+		            		<a href="https://www.google.com/maps/place/{{happyPlace.name}} {{ happyPlace.address }} {{ happyPlace.city }}/17z">
 		            			{{ happyPlace.address }}
 		            		</a>
 		            		</br>@</br>
 		            		{{ happyPlace.cross }}
-		            	{% else %}	
-		            		<a href="https://www.google.com/maps/dir//{{ happyPlace.address }} {{happyPlace.name}},17z">
-		            			{{ happyPlace.address }}
-		            		</a>
-		            		</br>@</br>
-		            		{{ happyPlace.cross }}
-		            	{% endif %}
+{#		            	{% endif %}#}
 		            </td>
-		            <td></td>
-		            <td></td>
-		            <td></td>
+		            <td colspan=2>
+		            	{% for happyHour in happyPlace.happyhour_set.all %}
+		            		{% if today in happyHour.days %}
+		            			<span>
+		            			{{happyHour.start|formatStart}} - {{happyHour.end|formatEnd}}: {{ happyHour.notes }}</br>
+		            			</span>		            		
+		            		{% endif %}
+		        		{% endfor %}
+		            </td>
 		            <td><div class="arrow"></div></td>
 		        </tr>
 		        
@@ -90,6 +128,6 @@
        	{% endfor %} 
     </table>
 </div>
-<a href="submit"> Tell us your HappyPlace </a>
+<a href="submit/"> Tell us your HappyPlace </a>
 </body>
 </html>

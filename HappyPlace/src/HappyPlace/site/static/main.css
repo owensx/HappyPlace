@@ -98,7 +98,6 @@ table td:first-child {
 }
 table td {
 	font-size: 15px;
-	width: 14%;
 	padding:18px;
 	border-top: 1px solid #ffffff;
 	border-bottom:1px solid #e0e0e0;
@@ -109,6 +108,7 @@ table td {
 	background: -moz-linear-gradient(top,  #fbfbfb,  #fafafa);
 }
 table td.dayOfWeek {
+	width: 14%;
 	text-align: left;	
 }
 table tr.hidden td {

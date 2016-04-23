@@ -11,9 +11,11 @@ urlpatterns =  patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
     
+    url(r'^getNeighborhoods/(?P<cityToSearch>\w+)', 'HappyPlace.site.views.getNeighborhoodsForCity', name='getNeighborhoodsForCity'),
     url(r'^happyPlace/(?P<happyPlaceId>\d+)', 'HappyPlace.site.views.HappyPlaceView', name='viewHappyPlace'),
-    url(r'^submit', 'HappyPlace.site.views.AddHappyPlace', name='add'),
-    url(r'^submit/', 'HappyPlace.site.views.AddHappyPlace', name='add'),
-    url(r'^', 'HappyPlace.site.views.Home', name='home'),
+    url(r'^submit/', 'HappyPlace.site.views.SubmissionFormsView', name='submit'),
+    url(r'^submitHappyHour/', 'HappyPlace.site.views.AddHappyHour', name='addHappyHour'),
+    url(r'^submitHappyPlace/', 'HappyPlace.site.views.AddHappyPlace', name='addHappyPlace'),
+    url(r'^', 'HappyPlace.site.views.Home', name='home'),    
 ) + staticfiles_urlpatterns()
 

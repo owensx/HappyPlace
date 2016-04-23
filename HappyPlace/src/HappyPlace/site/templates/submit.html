@@ -1,0 +1,46 @@
+<b><i>Happy Place Form</i></b>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  
+ <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
+ 
+{#<script>#}
+{#function popUp() {#}
+{#	alert("s");#}
+{#	$("form#happyHourForm").submit();#}
+{#	alert("s");#}
+{#    $( "#dialog-message" ).dialog({#}
+{#      modal: true,#}
+{#      buttons: {#}
+{#        "Add More": function() {#}
+{#          $( this ).dialog( "close" );#}
+{#          window.location.href = "page.html";#}
+{#        },#}
+{#        Home: function() {#}
+{#          $( this ).dialog( "close" );#}
+{#          window.location.href = "/";#}
+{#        }#}
+{#      }#}
+{#    });#}
+{#  }#}
+{#</script>#}
+
+<form id="happyHourForm" enctype="multipart/form-data" action="/submitHappyPlace/" method="post">
+  	{% csrf_token %}
+  	
+    {{ happyPlaceForm.as_p }}
+    
+    <input type="submit" value="Submit">
+</form>
+
+<form enctype="multipart/form-data" action="/submitHappyHour/" method="post">
+  	{% csrf_token %}
+  	
+    {{ happyHourForm.as_p }}
+    
+    <input type="submit" value="Submit">
+</form>
+
+{#<div id="dialog-message" title="Basic dialog">#}
+{#  <p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.</p>#}
+{#</div>#}
