@@ -84,27 +84,29 @@ def HappyPlaceView(request, happyPlaceId):
 def Home(request):
     allHappyPlaces = HappyPlace.objects.all()
     if request.method == 'POST':
-        if(request.POST.get('neighborhood') == 'all'):
+        if request.POST.get('city') == "Z":
+            happyPlaces = allHappyPlaces           
+        elif request.POST.get('neighborhood') == 'all':
             happyPlaces = HappyPlace.objects.all().filter(city=request.POST.get('city'))
         else:
             happyPlaces = HappyPlace.objects.all().filter(neighborhood=request.POST.get('neighborhood'))
     else:
         happyPlaces = allHappyPlaces
     
-    cities = (happyPlace.city for happyPlace in allHappyPlaces)
+    cities = sorted(set(happyPlace.city for happyPlace in allHappyPlaces))
     
     context = {
                'happyPlaces' : happyPlaces
                , 'dayPairs' : DAYS
                , 'today' : intToDayOfWeek(datetime.now().weekday())
-               , 'cities' : set(cities)
+               , 'cities' : cities
                }
     return render(request, 'home.html', context)
 
 def getNeighborhoodsForCity(request, cityToSearch):
     happyPlacesInCity = HappyPlace.objects.all().filter(city=cityToSearch)
     allNeighborhoods = (happyPlace.neighborhood for happyPlace in happyPlacesInCity)
-    uniqueNeighborhoods = set(allNeighborhoods)
+    uniqueNeighborhoods = sorted(set(allNeighborhoods))
     
     return HttpResponse(json.dumps(list(uniqueNeighborhoods)), content_type="application/javascript")
 
