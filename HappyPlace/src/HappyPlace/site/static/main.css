@@ -114,9 +114,15 @@ table td.dayOfWeek {
 	width: 14%;
 	text-align: left;	
 }
+
 table tr.hidden td {
 	background: rgba(169, 138, 15, 0.21);
+	border-left: 1px solid black;
 }
+table tr.hidden td:first-child {
+	border-left: 0;
+}
+
 table tr.even td {
 	background: #f6f6f6;
 	background: -webkit-gradient(linear, left top, left bottom, from(#f8f8f8), to(#f6f6f6));
