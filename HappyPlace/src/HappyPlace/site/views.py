@@ -30,19 +30,17 @@ def AddHappyPlace(request):
 
             while HappyPlace.objects.filter(id=idToInsert):
                 idToInsert = uuid4().int % 1000000000
-                
-            if not form.cleaned_data['site'].startswith('http'):
-                form.cleaned_data['site'] = 'http://' + form.cleaned_data['site']
-                
+                            
             happyPlace = HappyPlace(
                         id=idToInsert
                       , name=form.cleaned_data['name']
                       , address=form.cleaned_data['address']
-                      , city=form.cleaned_data['city']
-                      , site=form.cleaned_data['site']
                       , neighborhood=form.cleaned_data['neighborhood']
-                      , phone=form.cleaned_data['phone']
-                      , cross=form.cleaned_data['cross']
+                      , city=form.cleaned_data['city']
+                      
+                      , cross=None if form.cleaned_data['cross'] == '' else form.cleaned_data['cross']
+                      , site=None if form.cleaned_data['site'] == '' else form.cleaned_data['site']
+                      , phone=None if form.cleaned_data['phone'] == '' else form.cleaned_data['phone']
                       , latitude=None if form.cleaned_data['latitude'] == '' else form.cleaned_data['latitude']
                       , longitude=None if form.cleaned_data['longitude'] == '' else form.cleaned_data['longitude']
                     )
@@ -55,10 +53,8 @@ def AddHappyPlace(request):
 def AddHappyHour(request):
     if request.method == 'POST':
         form = HappyHourForm(request.POST)
-        
-        if form.is_valid():
-            print ("Form validated")
-            
+
+        if form.is_valid():            
             idToInsert = uuid4().int % 1000000000
 
             while HappyPlace.objects.filter(id=idToInsert):

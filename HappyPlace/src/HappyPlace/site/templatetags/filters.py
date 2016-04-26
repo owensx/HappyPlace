@@ -71,3 +71,9 @@ def formatEnd(value):
                     
         return str(value)+ampm
 
+@register.filter(name='formatTimeRange')
+def formatTimeRange(start, end):
+    if start == end and start == 'Midnight':
+        return 'All Day'
+    else:
+        return str(start) + '-' + str(end)

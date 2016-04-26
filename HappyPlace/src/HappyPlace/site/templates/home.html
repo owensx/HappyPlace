@@ -81,7 +81,7 @@
 	        	<tr>
 	            	<td>
 	            		{% if happyPlace.site != None %}
-	            			<a href="{{ happyPlace.site }}">
+	            			<a target="_blank" href="{{ happyPlace.site }}">
 								{{ happyPlace.name }}
 							</a>
 						{% else%}
@@ -90,7 +90,7 @@
 					</td>
 	            	<td>{{ happyPlace.neighborhood }}</td>
 		            <td colspan=2> 
-		            	<a href="https://www.google.com/maps/place/{{happyPlace.name}} {{ happyPlace.address }} {{ happyPlace.city }}/17z">
+		            	<a target="_blank" href="https://www.google.com/maps/search/{{happyPlace.name}} {{ happyPlace.address }} {{ happyPlace.city }}/17z">
 		            		{{ happyPlace.address }}
 		            	</a>
 		            	</br>@</br>
@@ -99,9 +99,11 @@
 		            <td colspan=2>
 		            	{% for happyHour in happyPlace.happyhour_set.all %}
 		            		{% if today in happyHour.days %}
-		            			<span>
-		            			<strong>{{happyHour.start|formatStart}} - {{happyHour.end|formatEnd}}:</strong> {{ happyHour.notes }}</br>
-		            			</span>		            		
+		            			{% with start=happyHour.start|formatStart end=happyHour.end|formatEnd %}
+		            			{% with displayTime=start|formatTimeRange:end %}
+		            			<strong>{{ displayTime }}:</strong> {{ happyHour.notes }}</br>
+		            			{% endwith %}
+		            			{% endwith %}        		
 		            		{% endif %}
 		        		{% endfor %}
 		            </td>
@@ -117,8 +119,11 @@
 		        		<p>
 		        		{% for happyHour in happyPlace.happyhour_set.all %}
 		        			{% if dayPair.0 in happyHour.days %}        			
-		        				<strong>{{ happyHour.start|formatStart }} - {{ happyHour.end|formatEnd }}</strong>
-		        				</br>
+		        				{% with start=happyHour.start|formatStart end=happyHour.end|formatEnd %}
+		            			{% with displayTime=start|formatTimeRange:end %}
+		            			<strong>{{ displayTime }}:</strong></br>
+		            			{% endwith %}
+		            			{% endwith %}
 		        				{{ happyHour.notes }}        			
 		        				</br></br>     			 
 		        			{% endif %}

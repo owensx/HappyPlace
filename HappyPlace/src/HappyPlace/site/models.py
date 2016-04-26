@@ -17,11 +17,11 @@ class HappyPlace(models.Model):
 #required fields
     name = models.CharField(max_length=50)
     address = models.CharField(max_length=75)
+    neighborhood = models.CharField(max_length=50)
     city = models.CharField(max_length=50)
     
 #optional fields
     site = models.CharField(max_length=50, null=True)
-    neighborhood = models.CharField(max_length=50, null=True)
     phone = models.CharField(max_length=50, null=True)
     cross = models.CharField(max_length=50, null=True)
     latitude = models.FloatField(null=True)
@@ -45,7 +45,6 @@ class HappyHour(models.Model):
 class HappyPlaceForm(ModelForm):
       
     site = forms.CharField(required=False)
-    neighborhood = forms.CharField(required=False)
     phone = forms.CharField(required=False)
     cross = forms.CharField(required=False)
     latitude = forms.CharField(required=False)
@@ -53,7 +52,7 @@ class HappyPlaceForm(ModelForm):
     
     class Meta:
         model = HappyPlace
-        fields = ['name', 'city', 'address']
+        fields = ['name', 'city', 'address', 'neighborhood']
         
 class HappyHourForm(ModelForm):
     happyPlace = forms.ModelChoiceField(queryset=HappyPlace.objects.all().order_by('name'))
