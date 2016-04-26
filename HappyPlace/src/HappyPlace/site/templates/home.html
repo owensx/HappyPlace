@@ -46,7 +46,7 @@
 	</script>
 </head>
 
-<form enctype="multipart/form-data" action="/" method="post">
+<form enctype="multipart/form-data" action="/" method="post" style="text-align: center;">
 	{% csrf_token %}
 	
 	<select name="city" id="city">
@@ -64,6 +64,9 @@
 </form>
 
 <body>
+
+<a href="submit/"> Tell us your HappyPlace </a>
+
 <div id = "tableContainer" cellspacing='0' >
  <table id="report">
         <tr>
@@ -97,7 +100,7 @@
 		            	{% for happyHour in happyPlace.happyhour_set.all %}
 		            		{% if today in happyHour.days %}
 		            			<span>
-		            			{{happyHour.start|formatStart}} - {{happyHour.end|formatEnd}}: {{ happyHour.notes }}</br>
+		            			<strong>{{happyHour.start|formatStart}} - {{happyHour.end|formatEnd}}:</strong> {{ happyHour.notes }}</br>
 		            			</span>		            		
 		            		{% endif %}
 		        		{% endfor %}
@@ -114,7 +117,7 @@
 		        		<p>
 		        		{% for happyHour in happyPlace.happyhour_set.all %}
 		        			{% if dayPair.0 in happyHour.days %}        			
-		        				{{ happyHour.start|formatStart }} - {{ happyHour.end|formatEnd }}
+		        				<strong>{{ happyHour.start|formatStart }} - {{ happyHour.end|formatEnd }}</strong>
 		        				</br>
 		        				{{ happyHour.notes }}        			
 		        				</br></br>     			 
@@ -128,6 +131,5 @@
        	{% endfor %} 
     </table>
 </div>
-<a href="submit/"> Tell us your HappyPlace </a>
 </body>
 </html>

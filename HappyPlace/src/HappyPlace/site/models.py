@@ -24,7 +24,6 @@ class HappyPlace(models.Model):
     neighborhood = models.CharField(max_length=50, null=True)
     phone = models.CharField(max_length=50, null=True)
     cross = models.CharField(max_length=50, null=True)
-    
     latitude = models.FloatField(null=True)
     longitude = models.FloatField(null=True)
     
@@ -54,11 +53,11 @@ class HappyPlaceForm(ModelForm):
     
     class Meta:
         model = HappyPlace
-        fields = ['name', 'city', 'neighborhood', 'address']
+        fields = ['name', 'city', 'address']
         
 class HappyHourForm(ModelForm):
-    days = forms.MultipleChoiceField(choices=DAYS, widget=forms.CheckboxSelectMultiple())
     happyPlace = forms.ModelChoiceField(queryset=HappyPlace.objects.all().order_by('name'))
+    days = forms.MultipleChoiceField(choices=DAYS, widget=forms.CheckboxSelectMultiple())
     
     class Meta:
         model = HappyHour

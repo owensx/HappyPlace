@@ -1,6 +1,9 @@
  body { 
- background-image: url('./background-toast.jpeg');
- font-family:Tahoma, Geneva, sans-serif; font-size:1em;}
+ background-image: url('./cityscape-802041_960_720.jpg');
+ font-family:Tahoma, Geneva, sans-serif; font-size:1em;
+ background-repeat: no-repeat;
+ background-size: cover;
+ }
 /*
  table, th, td {
  	height: 50px;
