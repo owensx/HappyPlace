@@ -43,8 +43,8 @@ def AddHappyPlace(request):
                       , neighborhood=form.cleaned_data['neighborhood']
                       , phone=form.cleaned_data['phone']
                       , cross=form.cleaned_data['cross']
-                      , latitude=form.cleaned_data['latitude']
-                      ,longitude=form.cleaned_data['longitude']
+                      , latitude=None if form.cleaned_data['latitude'] == '' else form.cleaned_data['latitude']
+                      , longitude=None if form.cleaned_data['longitude'] == '' else form.cleaned_data['longitude']
                     )
             
             happyPlace.save()

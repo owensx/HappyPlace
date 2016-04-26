@@ -79,22 +79,22 @@
         {% for happyPlace in happyPlaces %}
 {#        	 {% if happyPlace.active %} 		#}
 	        	<tr>
-	            	<td>{{ happyPlace.name }}</td>
+	            	<td>
+	            		{% if happyPlace.site != None %}
+	            			<a href="{{ happyPlace.site }}">
+								{{ happyPlace.name }}
+							</a>
+						{% else%}
+							{{ happyPlace.name }}
+						{% endif %}
+					</td>
 	            	<td>{{ happyPlace.neighborhood }}</td>
 		            <td colspan=2> 
-{#		            	{% if happyPlace.latitude != 0	 and happyPlace.longitude != 0 %}#}
-{#		            		<a href="https://www.google.com/maps/dir//{{ happyPlace.latitude }},{{ happyPlace.longitude }}/@{{ happyPlace.latitude }},{{ happyPlace.longitude }},17z">#}
-{#		            			{{ happyPlace.address }}#}
-{#		            		</a>#}
-{#		            		</br>@</br>#}
-{#		            		{{ happyPlace.cross }}#}
-{#		            	{% else %}	#}
-		            		<a href="https://www.google.com/maps/place/{{happyPlace.name}} {{ happyPlace.address }} {{ happyPlace.city }}/17z">
-		            			{{ happyPlace.address }}
-		            		</a>
-		            		</br>@</br>
-		            		{{ happyPlace.cross }}
-{#		            	{% endif %}#}
+		            	<a href="https://www.google.com/maps/place/{{happyPlace.name}} {{ happyPlace.address }} {{ happyPlace.city }}/17z">
+		            		{{ happyPlace.address }}
+		            	</a>
+		            	</br>@</br>
+		            	{{ happyPlace.cross }}
 		            </td>
 		            <td colspan=2>
 		            	{% for happyHour in happyPlace.happyhour_set.all %}

@@ -47,22 +47,27 @@ def beautifyDays(value):
 
 @register.filter(name='formatStart')
 def formatStart(value):
-    value = str(value)[1::-1][::-1]
-    value = int(value)
-    value = value if value < 13 else value - 12
-    value = value if not str(value).startswith('0') else value[1:]
-
-    return value
+    if str(value) == '00:00:00':
+        return 'Midnight'
+    else:
+        value = str(value)[1::-1][::-1]
+        value = int(value)
+        value = value if value < 13 else value - 12
+        value = value if not str(value).startswith('0') else value[1:]
+        return value
 
 @register.filter(name='formatEnd')
 def formatEnd(value):
-    value = str(value)[1::-1][::-1]
-    value = int(value)
+    if str(value) == '00:00:00':
+        return 'Midnight'
+    else:
+        value = str(value)[1::-1][::-1]
+        value = int(value)
     
-    ampm = 'pm' if value > 11 else 'am'
+        ampm = 'pm' if value > 11 else 'am'
     
-    value = value if value < 13 else value - 12
-    value = value if not str(value).startswith('0') else value[1:]
+        value = value if value < 13 else value - 12
+        value = value if not str(value).startswith('0') else value[1:]
                     
-    return str(value)+ampm
+        return str(value)+ampm
 
