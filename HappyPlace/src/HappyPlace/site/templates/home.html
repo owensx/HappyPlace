@@ -12,45 +12,49 @@
 <script type="text/javascript">
 	$(document).ready(function(){
 		$('#submit').attr('disabled', true);
-           $("#report tr:odd").addClass("odd");
-           $("#report tr:even").addClass("hidden");
-           $("#report tr:not(.odd)").hide();
-           $("#report tr:first-child").show();
-           
-           $("#report tr.odd").click(function(){
-               $(this).next("tr").toggle();
-               $(this).find(".arrow").toggleClass("up");
-           });
+        $("#report tr:odd").addClass("odd");
+        $("#report tr:even").addClass("hidden");
+        $("#report tr:not(.odd)").hide();
+        $("#report tr:first-child").show();
+          
+    	$("#report tr.odd").click(function(){
+            $(this).next("tr").toggle();
+            $(this).find(".arrow").toggleClass("up");
+        });
            	
-           $("select#city").change(function() {
+        $("select#city").change(function() {
 			if ($(this).val() == 'Z') {
 				$("select#neighborhood").html("<option>Select a Neighborhood</option>");
 				$("select#neighborhood").attr('disabled', true);
 			} else {
-					var url = "/getNeighborhoods/" + $(this).val();
-					$.getJSON(url, function(data) {
-						var options = '<option value="all">All Neighborhoods</option>';
-						for (var i = 0; i < data.length; i++) {
-							options += '<option value="' + data[i] + '">' + data[i] + '</option>';
-						}
-						$("select#neighborhood").html(options);
-						$("select#neighborhood option:first").attr('selected', 'selected');
-						$("select#neighborhood").attr('disabled', false);
-					});
+				var url = "/getNeighborhoods/" + $(this).val();
+				$.getJSON(url, function(data) {
+					var options = '<option value="all">All Neighborhoods</option>';
+					for (var i = 0; i < data.length; i++) {
+						options += '<option value="' + data[i] + '">' + data[i] + '</option>';
+					}
+					$("select#neighborhood").html(options);
+					$("select#neighborhood option:first").attr('selected', 'selected');
+					$("select#neighborhood").attr('disabled', false);
+				});
 					
-					$('#submit').attr('disabled', false);
-				}
-       	 	});
-       	 });
+				$('#submit').attr('disabled', false);
+	       	}
+	       	//var postData = $.post("/",$('#form').serialize());
+	       	//$("postData").submit(("select#city).change")
+   	 	});
+	});
        	 
-       	 function clearFilters(){
-			$("select#city option:first").attr('selected', 'selected');
-       	 }
+	function clearFilters(){
+		$("select#city option:first").attr('selected', 'selected');
+    }
 </script>
 </head>
 
-<form enctype="multipart/form-data" action="/" method="post" style="text-align: center;">
+<form id="form" enctype="multipart/form-data" action="/" method="post" style="text-align: center;">
 	{% csrf_token %}
+	
+	{#<input id="search" name="search" type="search" placeholder="Search by Name">#}
 	
 	<select name="city" id="city">
 		<option value="Z">Select a City</option>
@@ -64,7 +68,7 @@
 	</select>
 	
 	<input id="submit" type="submit" value="Submit">
-	<input id="clear" type ="submit" value="All" onClick="clearFilters()"> 
+	<input id="clear" type ="submit" value="Clear" onClick="clearFilters()">	
 </form>
 
 <body>
