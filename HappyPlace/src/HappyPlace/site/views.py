@@ -31,7 +31,7 @@ def AddHappyPlace(request):
             if not form.cleaned_data['site'] == '':
                 print('site field populated: ' + form.cleaned_data['site'])                            
                 if not form.cleaned_data['site'].startswith('http'):
-                    print('appending http...')
+                    print('prepending http...')
                     form.cleaned_data['site'] = 'http://' + form.cleaned_data['site']
                 
             happyPlace = HappyPlace(
@@ -64,14 +64,23 @@ def AddHappyPlace(request):
             print("happyPlace saved successfully")
             
             return HttpResponseRedirect('/home.html')    
-
+        
+        else:
+            print('could not validate form: ' + str(form.errors.as_data()))
+            context = {
+               'happyPlaceForm' : form
+               , 'happyHourForm' : HappyHourForm()
+               }        
+            return render(request, 'submit.html', context)
+        
 def AddHappyHour(request):
     if request.method == 'POST':
         print("received happyHour form POST")
         form = HappyHourForm(request.POST)
-
+            
         if form.is_valid():            
             print ("form validated")
+            
             idToInsert = generateId(HappyHour.objects)
             
             happyHour = HappyHour(
@@ -93,8 +102,17 @@ def AddHappyHour(request):
             
             happyHour.save()
             print("happyHour saved")
+            
+            return HttpResponseRedirect('/home.html')
         
-        return HttpResponseRedirect('/home.html') 
+        else:
+            print('could not validate form: ' + str(form.errors.as_data()))
+            context = {
+               'happyPlaceForm' : HappyPlaceForm()
+               , 'happyHourForm' : form
+               }        
+            return render(request, 'submit.html', context)
+            
             
 # def HappyPlaceView(request, happyPlaceId):
 #     happyPlace = get_object_or_404(HappyPlace ,pk=happyPlaceId)
@@ -109,11 +127,11 @@ def Home(request):
     
     if request.method == 'POST':
         print('received POST on home view')
-        if request.POST.get('city') == "Z":
+        if request.POST.get('city') == 'defaultCity':
             print('no city selected, returning all happyPlaces')
             happyPlaces = allHappyPlaces           
         elif request.POST.get('neighborhood') == 'all':
-            print('no neighborhood selected, returning all happyPlaces for ' + request.POST.get('city'))
+            print('no neighborhood selected, returning all happyPlaces in ' + request.POST.get('city'))
             happyPlaces = HappyPlace.objects.all().filter(city=request.POST.get('city'))
         else:
             print('returning all happyPlaces in ' + request.POST.get('neighborhood') + ', ' + request.POST.get('city'))
@@ -126,10 +144,15 @@ def Home(request):
                , 'dayPairs' : DAYS
                , 'today' : intToDayOfWeek(datetime.now().weekday())
                , 'cities' : allCities
+               , 'lastSelectedCity' : request.POST.get('city') if request.POST.get('city') is not None else 'defaultCity'
+               , 'lastSelectedNeighborhood' : request.POST.get('neighborhood') if request.POST.get('neighborhood') is not None else 'defaultNeighborhood'
                }
     return render(request, 'home.html', context)
 
 def getNeighborhoodsForCity(request, cityToSearch):
+    #reconstruct spaces in search parameter
+    cityToSearch = cityToSearch.replace('_', ' ')
+    
     happyPlacesInCity = HappyPlace.objects.all().filter(city=cityToSearch)
     allNeighborhoods = (happyPlace.neighborhood for happyPlace in happyPlacesInCity)
     uniqueNeighborhoods = sorted(set(allNeighborhoods))

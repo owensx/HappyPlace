@@ -21,28 +21,40 @@
             $(this).next("tr").toggle();
             $(this).find(".arrow").toggleClass("up");
         });
-           	
-        $("select#city").change(function() {
-			if ($(this).val() == 'Z') {
-				$("select#neighborhood").html("<option>Select a Neighborhood</option>");
+        
+        var lastSelectedCity = '{{ lastSelectedCity }}';
+        var lastSelectedNeighborhood = '{{ lastSelectedNeighborhood }}';
+        
+        $('select#city').val(lastSelectedCity).attr('selected', true);
+        
+        $('#body').css('background-color','#1D1D1B');
+        if (lastSelectedCity != 'defaultCity') {
+        	$('#body').css('background-image','url('+'./static/'+ lastSelectedCity +'.jpg'+')');
+        }        
+        
+        $("select#city").change(function() {        	
+			if ($(this).val() == 'defaultCity') {
+				$("select#neighborhood").html('<option>Select a Neighborhood</option>');
 				$("select#neighborhood").attr('disabled', true);
 			} else {
-				var url = "/getNeighborhoods/" + $(this).val();
+				//deconstruct spaces for URL
+				var url = "/getNeighborhoods/" + $(this).val().replace(' ','_');
+				
 				$.getJSON(url, function(data) {
-					var options = '<option value="all">All Neighborhoods</option>';
+					var options = '<option value="all"> All Neighborhoods </option>';
 					for (var i = 0; i < data.length; i++) {
 						options += '<option value="' + data[i] + '">' + data[i] + '</option>';
 					}
 					$("select#neighborhood").html(options);
-					$("select#neighborhood option:first").attr('selected', 'selected');
+					$('select#neighborhood').val(lastSelectedNeighborhood).attr('selected', true);
 					$("select#neighborhood").attr('disabled', false);
 				});
 					
 				$('#submit').attr('disabled', false);
 	       	}
-	       	//var postData = $.post("/",$('#form').serialize());
-	       	//$("postData").submit(("select#city).change")
    	 	});
+   	 	
+        $('select#city').trigger('change');
 	});
        	 
 	function clearFilters(){
@@ -51,29 +63,31 @@
 </script>
 </head>
 
-<form id="form" enctype="multipart/form-data" action="/" method="post" style="text-align: center;">
+<body id="body">
+
+<form id="selectForm" enctype="multipart/form-data" action="/" method="post" style="text-align: center;">
 	{% csrf_token %}
 	
-	{#<input id="search" name="search" type="search" placeholder="Search by Name">#}
+	<div class="selectFormRow">
+		<select name="city" id="city">
+			<option value="defaultCity">Select A City</option>
+			{% for city in cities %}
+				<option value="{{ city }}">{{ city }}</option>
+			{% endfor %}
+		</select>
+		
+		<select name="neighborhood" id="neighborhood" disabled="true">
+			<option value="defaultNeighborhood">Select a Neighborhood</option>
+		</select>
+	</div>
 	
-	<select name="city" id="city">
-		<option value="Z">Select a City</option>
-		{% for city in cities %}
-			<option value="{{ city }}">{{ city }}</option>
-		{% endfor %}
-	</select>
-	
-	<select name="neighborhood" id="neighborhood" disabled="true">
-		<option>Select a Neighborhood</option>
-	</select>
-	
-	<input id="submit" type="submit" value="Submit">
-	<input id="clear" type ="submit" value="Clear" onClick="clearFilters()">	
+	<div class="selectFormRow" style="padding-top: 20px;">
+		<input id="submit" type="submit" value="Submit">
+		<input id="clear" type ="submit" value="Clear" onClick="clearFilters()">	
+	</div>
 </form>
 
-<body>
 
-<a href="submit/"> Tell us your HappyPlace </a>
 
 <div id = "tableContainer" cellspacing='0' >
  <table id="report">
@@ -107,7 +121,7 @@
 		            <td colspan=2>
 		            	{% for happyHour in happyPlace.happyhour_set.all %}
 		            		{% if today in happyHour.days %}
-		            			{% with start=happyHour.start|formatStart end=happyHour.end|formatEnd %}
+		            			{% with start=happyHour.start|formatTime end=happyHour.end|formatTime %}
 		            			{% with displayTime=start|formatTimeRange:end %}
 		            			<strong>{{ displayTime }}:</strong> {{ happyHour.notes }}</br>
 		            			{% endwith %}
@@ -127,7 +141,7 @@
 		        		<p>
 		        		{% for happyHour in happyPlace.happyhour_set.all %}
 		        			{% if dayPair.0 in happyHour.days %}        			
-		        				{% with start=happyHour.start|formatStart end=happyHour.end|formatEnd %}
+		        				{% with start=happyHour.start|formatTime end=happyHour.end|formatTime %}
 		            			{% with displayTime=start|formatTimeRange:end %}
 		            			<strong>{{ displayTime }}:</strong></br>
 		            			{% endwith %}
@@ -144,5 +158,10 @@
        	{% endfor %} 
     </table>
 </div>
+
+<a href="submit/"> Tell us your HappyPlace </a>
+</br>
+</br>
+<a href="https://drive.google.com/folderview?id=0B1_AzQ7O1inTRGxmS2JNcFYtLU0&usp=sharing"> Submit A Photo </a>
 </body>
 </html>

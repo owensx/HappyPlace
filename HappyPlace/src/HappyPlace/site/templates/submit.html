@@ -5,29 +5,37 @@
 <script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
 <script type="text/javascript">
 	$(document).ready(function(){
-       	 $("input#allDay").change(function(){
+       	 $("input#fromOpen").change(function(){
        	 	if($(this).prop('checked')){       	 		
        	 		$("input#id_start").attr('disabled', true);
-       	 		$("input#id_end").attr('disabled', true);
        	 	} else {
        	 		$("input#id_start").val("");
-       	 		$("input#id_end").val("");
        	 		
        	 		$("input#id_start").attr('disabled', false);
+       	 	}
+       	 });
+       	 $("input#toClose").change(function(){
+       	 	if($(this).prop('checked')){       	 		
+       	 		$("input#id_end").attr('disabled', true);
+       	 	} else {
+       	 		$("input#id_end").val("");
+       	 		
        	 		$("input#id_end").attr('disabled', false);
        	 	}
        	 });
      });
      
-     function onHappyHourSubmit(){
-     	$("input#id_start").attr('disabled', false);
-       	$("input#id_end").attr('disabled', false);  
+    function onHappyHourSubmit(){
+		$("input#id_start").attr('disabled', false);
+		$("input#id_end").attr('disabled', false);  
        	
-     	if($("input#allDay").prop('checked')){
-       	 	$("input#id_start").val("00:00:00");
-       	 	$("input#id_end").val("00:00:00");
-       	}
-     }
+		if($("input#fromOpen").prop('checked')){
+   	 		$("input#id_start").val("00:00:01");
+   		}
+   		if($("input#toClose").prop('checked')){
+   			$("input#id_end").val("00:00:02");
+  		}
+  	}
 </script>
 
 <form id="happyHourForm" enctype="multipart/form-data" action="/submitHappyPlace/" method="post">
@@ -41,7 +49,8 @@
 <form enctype="multipart/form-data" action="/submitHappyHour/" method="post">
   	{% csrf_token %}
   	
-    <label for="allDay"><input id="allDay" name="allDay" type="checkbox"> All Day</label>
+    <label for="fromOpen"><input id="fromOpen" name="fromOpen" type="checkbox"> From Open </label>
+    <label for="toClose"><input id="toClose" name="toClose" type="checkbox"> To Close </label>
     {{ happyHourForm.as_p }}
     <input onClick="onHappyHourSubmit()" type="submit" value="Submit">
 </form>

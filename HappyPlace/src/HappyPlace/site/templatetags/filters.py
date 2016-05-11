@@ -46,34 +46,40 @@ def beautifyDays(value):
 
 
 @register.filter(name='formatStart')
-def formatStart(value):
-    if str(value) == '00:00:00':
-        return 'Midnight'
-    else:
-        value = str(value)[1::-1][::-1]
-        value = int(value)
-        value = value if value < 13 else value - 12
-        value = value if not str(value).startswith('0') else value[1:]
-        return value
+# def formatStart(value):
+#     if str(value) == '00:00:00':
+#         return 'Midnight'
+#     elif str(value) == '00:00:01':
+#         return 'Open'        
+#     else:
+#         value = str(value)[1::-1][::-1]
+#         value = int(value)
+#         
+#         value = value if value < 13 else value - 12
+#         
+#         return value
 
-@register.filter(name='formatEnd')
-def formatEnd(value):
+@register.filter(name='formatTime')
+def formatTime(value):
     if str(value) == '00:00:00':
         return 'Midnight'
+    elif str(value) == '00:00:01':
+        return 'Open'        
+    elif str(value) == '00:00:02':
+        return 'Close'
     else:
         value = str(value)[1::-1][::-1]
         value = int(value)
-    
+        
         ampm = 'pm' if value > 11 else 'am'
-    
+        
         value = value if value < 13 else value - 12
-        value = value if not str(value).startswith('0') else value[1:]
-                    
+        
         return str(value)+ampm
 
 @register.filter(name='formatTimeRange')
 def formatTimeRange(start, end):
-    if start == end and start == 'Midnight':
+    if start == 'Open' and end=='Close':
         return 'All Day'
     else:
         return str(start) + '-' + str(end)
