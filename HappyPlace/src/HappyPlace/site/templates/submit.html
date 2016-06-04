@@ -23,8 +23,46 @@
        	 		$("input#id_end").attr('disabled', false);
        	 	}
        	 });
-     });
+       	 
+       	 		
+    });
      
+    function dailyClick(buttonName){
+
+    	$("#id_days_0").prop('checked', false);
+	    $("#id_days_1").prop('checked', false);
+	    $("#id_days_2").prop('checked', false);
+	    $("#id_days_3").prop('checked', false);
+	    $("#id_days_4").prop('checked', false);
+	    $("#id_days_5").prop('checked', false);
+	    $("#id_days_6").prop('checked', false);
+      
+    	switch (buttonName){
+    		case 'daily':
+	    		$("#id_days_0").prop('checked', true);
+	    		$("#id_days_1").prop('checked', true);
+	    		$("#id_days_2").prop('checked', true);
+	    		$("#id_days_3").prop('checked', true);
+	    		$("#id_days_4").prop('checked', true);
+	    		$("#id_days_5").prop('checked', true);
+	    		$("#id_days_6").prop('checked', true);
+	    		break;
+	    		
+	    	case 'weekdays':
+	    		$("#id_days_1").prop('checked', true);
+	    		$("#id_days_2").prop('checked', true);
+	    		$("#id_days_3").prop('checked', true);
+	    		$("#id_days_4").prop('checked', true);
+	    		$("#id_days_5").prop('checked', true);
+	    		break;
+	    		
+	    	case 'weekends':
+	    		$("#id_days_0").prop('checked', true);
+	    		$("#id_days_6").prop('checked', true);
+	    		break;
+    	}
+    }	
+        
     function onHappyHourSubmit(){
 		$("input#id_start").attr('disabled', false);
 		$("input#id_end").attr('disabled', false);  
@@ -52,6 +90,12 @@
     <label for="fromOpen"><input id="fromOpen" name="fromOpen" type="checkbox"> From Open </label>
     <label for="toClose"><input id="toClose" name="toClose" type="checkbox"> To Close </label>
     {{ happyHourForm.as_p }}
+    
+    <button for="daily" id="daily" name="daily" type="button" onCLick="dailyClick('daily')"> Daily </button>
+    <button for="weekdays" id="weekdays" name="weekdays" type="button" onCLick="dailyClick('weekdays')"> Weekdays </button>
+    <button for="weekends" id="weekends" name="weekends" type="button" onCLick="dailyClick('weekends')"> Weekends </button>
+    </br>
+    </br>
     <input onClick="onHappyHourSubmit()" type="submit" value="Submit">
 </form>
 

@@ -40,7 +40,7 @@ class HappyHour(models.Model):
     start = models.TimeField()
     end = models.TimeField()
     
-    happyPlace = models.ForeignKey(HappyPlace)
+    happyPlace = models.ForeignKey(HappyPlace, related_name='happyHours')
     
 class HappyPlaceForm(ModelForm):
       

@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect
 from HappyPlace.site.models import *
 from uuid import uuid4
 from django.http.response import HttpResponseBadRequest, HttpResponse
-from datetime import datetime
+from datetime import datetime, time
 from HappyPlace.site.templatetags.filters import *
 from django.core import serializers
 import json
@@ -138,7 +138,18 @@ def Home(request):
             happyPlaces = HappyPlace.objects.all().filter(neighborhood=request.POST.get('neighborhood'))
     else:
         happyPlaces = allHappyPlaces
-    
+
+    if request.POST.get('currentTimeOnly') and not request.POST.get('city') == 'defaultCity':
+        today = list(DAYSABBREVMAP.keys())[int(list(DAYSINTMAP.values()).index(DAYSINTMAP[str(datetime.now().weekday())]))]
+        
+        happyHours = [happyHour for happyPlace in happyPlaces for happyHour in happyPlace.happyHours.all()]
+        happyHours = [happyHour for happyHour in happyHours if today in happyHour.days]
+        happyHours = [happyHour for happyHour in happyHours if
+                      (happyHour.end > datetime.now().time() and happyHour.start < datetime.now().time())
+                      or (str(happyHour.end) == '00:00:02'and str(happyHour.start) == '00:00:01')]
+        
+        happyPlaces = set(happyHour.happyPlace for happyHour in happyHours)
+
     context = {
                'happyPlaces' : happyPlaces
                , 'dayPairs' : DAYS

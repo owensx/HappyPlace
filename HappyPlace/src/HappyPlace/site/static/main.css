@@ -1,7 +1,10 @@
  body { 
  background-image: url('./default.png');
  font-family:Tahoma, Geneva, sans-serif;
- font-size:1em;
+ font-variant: small-caps;
+ color: #B59B31;
+ font-weight: bold;
+ font-size: 1em;
  background-repeat: no-repeat;
  background-size: cover;
  }

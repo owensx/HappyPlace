@@ -29,7 +29,7 @@
         
         $('#body').css('background-color','#1D1D1B');
         if (lastSelectedCity != 'defaultCity') {
-        	$('#body').css('background-image','url('+'./static/'+ lastSelectedCity +'.jpg'+')');
+        	$('#body').css('background-image','url('+'./static/'+ lastSelectedCity.replace(' ','_') +'.jpg'+')');
         }        
         
         $("select#city").change(function() {        	
@@ -60,6 +60,7 @@
 	function clearFilters(){
 		$("select#city option:first").attr('selected', 'selected');
     }
+    
 </script>
 </head>
 
@@ -83,7 +84,8 @@
 	
 	<div class="selectFormRow" style="padding-top: 20px;">
 		<input id="submit" type="submit" value="Submit">
-		<input id="clear" type ="submit" value="Clear" onClick="clearFilters()">	
+		<input id="clear" type="submit" value="Clear" onClick="clearFilters()">
+		<p> <input id="currentTimeOnly" name="currentTimeOnly" type ="checkbox" onClick="currentOnlyFilter()"> Right Now! </p>
 	</div>
 </form>
 
@@ -119,7 +121,7 @@
 		            	{{ happyPlace.cross }}
 		            </td>
 		            <td colspan=2>
-		            	{% for happyHour in happyPlace.happyhour_set.all %}
+		            	{% for happyHour in happyPlace.happyHours.all %}
 		            		{% if today in happyHour.days %}
 		            			{% with start=happyHour.start|formatTime end=happyHour.end|formatTime %}
 		            			{% with displayTime=start|formatTimeRange:end %}
@@ -139,7 +141,7 @@
 		        		</br>
 		        		</br>
 		        		<p>
-		        		{% for happyHour in happyPlace.happyhour_set.all %}
+		        		{% for happyHour in happyPlace.happyHours.all %}
 		        			{% if dayPair.0 in happyHour.days %}        			
 		        				{% with start=happyHour.start|formatTime end=happyHour.end|formatTime %}
 		            			{% with displayTime=start|formatTimeRange:end %}
@@ -159,10 +161,9 @@
     </table>
 </div>
 
-<a href="submit/"> Tell us your HappyPlace </a>
 </br>
 </br>
 </br>
-<a href="https://script.google.com/macros/s/AKfycbxY09aDQbhBdA7t_mB4H4abe_bMMlketJvxwlp8l2A0B_TcDjwN/exec">ADD A PHOPTO</a>
+{#<a href="https://script.google.com/macros/s/AKfycbxY09aDQbhBdA7t_mB4H4abe_bMMlketJvxwlp8l2A0B_TcDjwN/exec">ADD A PHOTO</a>#}
 </body>
 </html>
