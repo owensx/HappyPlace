@@ -140,6 +140,7 @@ def Home(request):
         happyPlaces = allHappyPlaces
 
     if request.POST.get('currentTimeOnly') and not request.POST.get('city') == 'defaultCity':
+        print(datetime.now())
         today = list(DAYSABBREVMAP.keys())[int(list(DAYSINTMAP.values()).index(DAYSINTMAP[str(datetime.now().weekday())]))]
         
         happyHours = [happyHour for happyPlace in happyPlaces for happyHour in happyPlace.happyHours.all()]
