@@ -11,6 +11,18 @@ DAYS = (('S','Sunday')
     ,('F','Friday')
     ,('Y','Saturday'))
 
+class City(models.Model):
+    id = models.IntegerField(primary_key=True)
+    
+    name = models.CharField(max_length=50)
+    offset = models.IntegerField()
+    
+    def __str__(self):
+        return self.name.__str__()
+    
+    class Meta:
+        ordering = ('name',)
+        
 class HappyPlace(models.Model):
     id = models.IntegerField(primary_key=True)
 
@@ -18,7 +30,7 @@ class HappyPlace(models.Model):
     name = models.CharField(max_length=50)
     address = models.CharField(max_length=75)
     neighborhood = models.CharField(max_length=50)
-    city = models.CharField(max_length=50)
+    city = models.ForeignKey(City, related_name='happyPlaces')
     
 #optional fields
     site = models.CharField(max_length=50, null=True)

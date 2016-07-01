@@ -4,7 +4,7 @@ from django.http import HttpResponseRedirect
 from HappyPlace.site.models import *
 from uuid import uuid4
 from django.http.response import HttpResponseBadRequest, HttpResponse
-from datetime import datetime, time
+from datetime import datetime, time, timedelta
 from HappyPlace.site.templatetags.filters import *
 from django.core import serializers
 import json
@@ -113,17 +113,9 @@ def AddHappyHour(request):
                }        
             return render(request, 'submit.html', context)
             
-            
-# def HappyPlaceView(request, happyPlaceId):
-#     happyPlace = get_object_or_404(HappyPlace ,pk=happyPlaceId)
-#     
-#     context = {'happyPlace' : happyPlace}
-#     return render(request, 'happyPlace.html', context)
-        
-
 def Home(request):
     allHappyPlaces = HappyPlace.objects.all()
-    allCities = sorted(set(happyPlace.city for happyPlace in allHappyPlaces))
+    allCities = sorted(set(happyPlace.city.name for happyPlace in allHappyPlaces))
     
     if request.method == 'POST':
         print('received POST on home view')
@@ -132,40 +124,67 @@ def Home(request):
             happyPlaces = allHappyPlaces           
         elif request.POST.get('neighborhood') == 'all':
             print('no neighborhood selected, returning all happyPlaces in ' + request.POST.get('city'))
-            happyPlaces = HappyPlace.objects.all().filter(city=request.POST.get('city'))
+            happyPlaces = City.objects.get(name=request.POST.get('city')).happyPlaces.all()
         else:
             print('returning all happyPlaces in ' + request.POST.get('neighborhood') + ', ' + request.POST.get('city'))
-            happyPlaces = HappyPlace.objects.all().filter(neighborhood=request.POST.get('neighborhood'))
+            happyPlaces = HappyPlace.objects.filter(neighborhood=request.POST.get('neighborhood'))
     else:
         happyPlaces = allHappyPlaces
 
     if request.POST.get('currentTimeOnly') and not request.POST.get('city') == 'defaultCity':
-        print(datetime.now())
-        today = list(DAYSABBREVMAP.keys())[int(list(DAYSINTMAP.values()).index(DAYSINTMAP[str(datetime.now().weekday())]))]
+        print('only returning happyHours happening now')
+        today = list(DAYSABBREVMAP.keys())[int(list(DAYSINTMAP.values()).index(DAYSINTMAP[str(datetime.utcnow().weekday())]))]
         
+        currentDatetime = datetime.utcnow()
+        currentDate = currentDatetime.date()
+        tomorrowDate = currentDate + timedelta(days=1)
+              
         happyHours = [happyHour for happyPlace in happyPlaces for happyHour in happyPlace.happyHours.all()]
         happyHours = [happyHour for happyHour in happyHours if today in happyHour.days]
-        happyHours = [happyHour for happyHour in happyHours if
-                      (happyHour.end > datetime.now().time() and happyHour.start < datetime.now().time())
-                      or (str(happyHour.end) == '00:00:02'and str(happyHour.start) == '00:00:01')]
         
-        happyPlaces = set(happyHour.happyPlace for happyHour in happyHours)
-
+        happyHoursA = [happyHour for happyHour in happyHours if
+                      (
+                       happyHour.end > happyHour.start
+                       and (datetime.combine(currentDate, happyHour.start) - timedelta(hours=happyHour.happyPlace.city.offset) < currentDatetime)
+                       and (datetime.combine(currentDate, happyHour.end) - timedelta(hours=happyHour.happyPlace.city.offset) > currentDatetime)
+                      )
+                      or (str(happyHour.end) == '00:00:02'and str(happyHour.start) == '00:00:01')
+                      ] 
+        happyHoursB = [happyHour for happyHour in happyHours if
+                      (
+                       happyHour.end < happyHour.start
+                       and (datetime.combine(tomorrowDate, happyHour.end) - timedelta(hours=happyHour.happyPlace.city.offset) > currentDatetime)
+                       and (datetime.combine(currentDate, happyHour.start) - timedelta(hours=happyHour.happyPlace.city.offset) < currentDatetime)
+                      )
+                      or (str(happyHour.end) == '00:00:02'and str(happyHour.start) == '00:00:01')
+                      ]
+        allHappyHours = happyHoursA + happyHoursB
+        
+        happyPlaces = list(set(happyHour.happyPlace for happyHour in allHappyHours))
+        
+    if len(happyPlaces) == 0:
+        return HttpResponseRedirect('/error/')
+        
     context = {
                'happyPlaces' : happyPlaces
                , 'dayPairs' : DAYS
-               , 'today' : intToDayOfWeek(datetime.now().weekday())
+               , 'today' : intToDayOfWeek((datetime.utcnow() + timedelta(hours=happyPlaces[0].city.offset)).weekday())
                , 'cities' : allCities
                , 'lastSelectedCity' : request.POST.get('city') if request.POST.get('city') is not None else 'defaultCity'
                , 'lastSelectedNeighborhood' : request.POST.get('neighborhood') if request.POST.get('neighborhood') is not None else 'defaultNeighborhood'
                }
     return render(request, 'home.html', context)
 
+def Error(request):
+    
+    return render(request, 'error.html')
+
 def getNeighborhoodsForCity(request, cityToSearch):
     #reconstruct spaces in search parameter
     cityToSearch = cityToSearch.replace('_', ' ')
+    city = City.objects.get(name=cityToSearch)
+    happyPlacesInCity = city.happyPlaces.all()
     
-    happyPlacesInCity = HappyPlace.objects.all().filter(city=cityToSearch)
     allNeighborhoods = (happyPlace.neighborhood for happyPlace in happyPlacesInCity)
     uniqueNeighborhoods = sorted(set(allNeighborhoods))
     
