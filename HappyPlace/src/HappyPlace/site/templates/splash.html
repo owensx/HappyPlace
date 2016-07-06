@@ -1,0 +1,30 @@
+<html>
+
+	<head>
+		{% load staticfiles %}
+		<link rel="stylesheet" href="{% static 'main.css' %}" type="text/css">
+	</head>
+
+<body style="background-image: url(./static/cheers.jpg); background-size: covers;">
+	<img src="{% static 'logo.png' %}" style="display: block; margin: 0 auto;">
+	<p style="text-align: center; color: black;">Find Your Happy Place</p>
+	<form class="selectForm" enctype="multipart/form-data" action="/" method="post" style="text-align: center;">
+		{% csrf_token %}
+	
+		<div class="selectFormRow">
+			<select name="city" id="city">
+				<option value="defaultCity">---</option>
+				{% for city in cities %}
+					<option value="{{ city }}">{{ city }}</option>
+				{% endfor %}
+			</select>
+			<input id="submit" type="submit" value="Go">
+		</div>
+	
+		<div class="selectFormRow" style="padding-top: 20px;">
+		</div>
+	
+	</form>
+</body>
+
+</html>

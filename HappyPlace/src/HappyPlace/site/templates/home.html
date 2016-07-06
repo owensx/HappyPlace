@@ -27,32 +27,25 @@
         
         $('select#city').val(lastSelectedCity).attr('selected', true);
         
-        $('#body').css('background-color','#1D1D1B');
-        if (lastSelectedCity != 'defaultCity') {
-        	$('#body').css('background-image','url('+'./static/'+ lastSelectedCity.replace(' ','_') +'.jpg'+')');
-        }        
+        $('#body').css('background-image','url('+'./static/'+ lastSelectedCity.replace(' ','_') +'.jpg'+')');        
         
         $("select#city").change(function() {        	
-			if ($(this).val() == 'defaultCity') {
-				$("select#neighborhood").html('<option>Select a Neighborhood</option>');
-				$("select#neighborhood").attr('disabled', true);
-			} else {
-				//deconstruct spaces for URL
-				var url = "/getNeighborhoods/" + $(this).val().replace(' ','_');
+			//deconstruct spaces for URL
+			var url = "/getNeighborhoods/" + $(this).val().replace(' ','_');
 				
-				$.getJSON(url, function(data) {
-					var options = '<option value="all"> All Neighborhoods </option>';
-					for (var i = 0; i < data.length; i++) {
-						options += '<option value="' + data[i] + '">' + data[i] + '</option>';
-					}
-					$("select#neighborhood").html(options);
-					$('select#neighborhood').val(lastSelectedNeighborhood).attr('selected', true);
-					$("select#neighborhood").attr('disabled', false);
-				});
+			$.getJSON(url, function(data) {
+				var options = '<option value="all"> All Neighborhoods </option>';
+				for (var i = 0; i < data.length; i++) {
+					options += '<option value="' + data[i] + '">' + data[i] + '</option>';
+				}
+				$("select#neighborhood").html(options);
+				$('select#neighborhood').val(lastSelectedNeighborhood).attr('selected', true);
+				$("select#neighborhood").attr('disabled', false);
+			});
 					
-				$('#submit').attr('disabled', false);
-	       	}
-   	 	});
+			$('#submit').attr('disabled', false);
+	       	
+  	 	});
    	 	
         $('select#city').trigger('change');
 	});
@@ -66,13 +59,13 @@
 
 <body id="body">
 
-<form id="selectForm" enctype="multipart/form-data" action="/" method="post" style="text-align: center;">
+<form class="selectForm" enctype="multipart/form-data" action="/" method="post" style="text-align: center;">
 	{% csrf_token %}
 	
 	<div class="selectFormRow">
 		<select name="city" id="city">
-			<option value="defaultCity">All Cities</option>
-			{% for city in cities %}
+			<option value="{{ cities.0 }}">{{ cities.0 }}</option>
+			{% for city in cities|slice:"1:" %}
 				<option value="{{ city }}">{{ city }}</option>
 			{% endfor %}
 		</select>
@@ -101,7 +94,6 @@
             <th></th>
         </tr>
         {% for happyPlace in happyPlaces %}
-{#        	 {% if happyPlace.active %} 		#}
 	        	<tr>
 	            	<td>
 	            		{% if happyPlace.site != None %}
@@ -156,7 +148,6 @@
 		        	</td>
 		        {% endfor %}			        	
 		        </tr>
-			{# {% endif %} #}
        	{% endfor %} 
     </table>
 </div>

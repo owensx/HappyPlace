@@ -76,6 +76,14 @@
   	}
 </script>
 
+<form id="cityForm" enctype="multipart/form-data" action="/submitCity/" method="post">
+	{% csrf_token %}
+  	
+    {{ cityForm.as_p }}
+    
+    <input type="submit" value="Submit">
+</form>
+
 <form id="happyHourForm" enctype="multipart/form-data" action="/submitHappyPlace/" method="post">
   	{% csrf_token %}
   	

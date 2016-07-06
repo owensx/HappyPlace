@@ -8,17 +8,48 @@ from datetime import datetime, time, timedelta
 from HappyPlace.site.templatetags.filters import *
 from django.core import serializers
 import json
+from django.template.response import TemplateResponse
 
 def SubmissionFormsView(request):
+    
+    cityForm = CityForm()
     happyPlaceForm = HappyPlaceForm()
     happyHourForm = HappyHourForm()
     
     context = {
-               'happyPlaceForm' : happyPlaceForm
+               'cityForm' : cityForm
+               , 'happyPlaceForm' : happyPlaceForm
                , 'happyHourForm' : happyHourForm
                }        
     return render(request, 'submit.html', context)
 
+def AddCity(request):
+    if request.method == 'POST':
+        print("received city form POST")
+        form = CityForm(request.POST)
+         
+        if form.is_valid():
+            print ("form validated")
+            idToInsert = generateId(City.objects)
+             
+            city = City(
+                    id=idToInsert
+                    ,name=form.cleaned_data['name']
+                    ,offset=form.cleaned_data['offset']
+                    )
+            
+            city.save()
+            print("city saved successfully")
+            
+        else:
+            print('could not validate form: ' + str(form.errors.as_data()))
+            context = {
+               'happyPlaceForm' : form
+               , 'happyHourForm' : HappyHourForm()
+               }        
+            return render(request, 'submit.html', context)
+            
+    return HttpResponseRedirect('/submit')
 def AddHappyPlace(request):
     if request.method == 'POST':
         print("received happyPlace form POST")
@@ -43,7 +74,7 @@ def AddHappyPlace(request):
                       
                       , cross=None if form.cleaned_data['cross'] == '' else form.cleaned_data['cross']
                       , site=None if form.cleaned_data['site'] == '' else form.cleaned_data['site']
-                      , phone=None if form.cleaned_data['phone'] == '' else form.cleaned_data['phone']
+                      , phone=None if form.cleaned_data['phone'] == '' else beautifyPhone(form.cleaned_data['phone'])
                       , latitude=None if form.cleaned_data['latitude'] == '' else form.cleaned_data['latitude']
                       , longitude=None if form.cleaned_data['longitude'] == '' else form.cleaned_data['longitude']
                     )
@@ -63,7 +94,7 @@ def AddHappyPlace(request):
             happyPlace.save()
             print("happyPlace saved successfully")
             
-            return HttpResponseRedirect('/home.html')    
+            return HttpResponseRedirect('/submit')    
         
         else:
             print('could not validate form: ' + str(form.errors.as_data()))
@@ -79,8 +110,7 @@ def AddHappyHour(request):
         form = HappyHourForm(request.POST)
             
         if form.is_valid():            
-            print ("form validated")
-            
+            print ("form validated")            
             idToInsert = generateId(HappyHour.objects)
             
             happyHour = HappyHour(
@@ -103,7 +133,7 @@ def AddHappyHour(request):
             happyHour.save()
             print("happyHour saved")
             
-            return HttpResponseRedirect('/home.html')
+            return HttpResponseRedirect('/submit')
         
         else:
             print('could not validate form: ' + str(form.errors.as_data()))
@@ -114,57 +144,87 @@ def AddHappyHour(request):
             return render(request, 'submit.html', context)
             
 def Home(request):
-    allHappyPlaces = HappyPlace.objects.all()
+    allHappyPlaces = HappyPlace.objects.filter(active=1)
     allCities = sorted(set(happyPlace.city.name for happyPlace in allHappyPlaces))
+    
+    if request.method == 'GET':
+        context = {
+                   'cities' : allCities
+                   }
+        return TemplateResponse(request, 'splash.html', context)
     
     if request.method == 'POST':
         print('received POST on home view')
         if request.POST.get('city') == 'defaultCity':
             print('no city selected, returning all happyPlaces')
             happyPlaces = allHappyPlaces           
-        elif request.POST.get('neighborhood') == 'all':
+        elif request.POST.get('neighborhood') == 'all' or request.POST.get('neighborhood') == None:
             print('no neighborhood selected, returning all happyPlaces in ' + request.POST.get('city'))
             happyPlaces = City.objects.get(name=request.POST.get('city')).happyPlaces.all()
         else:
             print('returning all happyPlaces in ' + request.POST.get('neighborhood') + ', ' + request.POST.get('city'))
-            happyPlaces = HappyPlace.objects.filter(neighborhood=request.POST.get('neighborhood'))
+            happyPlaces = HappyPlace.objects.filter(neighborhood=request.POST.get('neighborhood'), active=1)
     else:
         happyPlaces = allHappyPlaces
 
     if request.POST.get('currentTimeOnly') and not request.POST.get('city') == 'defaultCity':
         print('only returning happyHours happening now')
-        today = list(DAYSABBREVMAP.keys())[int(list(DAYSINTMAP.values()).index(DAYSINTMAP[str(datetime.utcnow().weekday())]))]
-        
-        currentDatetime = datetime.utcnow()
-        currentDate = currentDatetime.date()
-        tomorrowDate = currentDate + timedelta(days=1)
-              
         happyHours = [happyHour for happyPlace in happyPlaces for happyHour in happyPlace.happyHours.all()]
+        
+        currentLocalDatetime = datetime.utcnow() + timedelta(hours=happyHours[0].happyPlace.city.offset)
+        currentLocalDate = currentLocalDatetime.date()
+        currentWeekdayInt = currentLocalDatetime.weekday()
+        
+        today = intToDayOfWeek(currentWeekdayInt)
+#         tomorrowDate = currentLocalDate + timedelta(days=1)
+
         happyHours = [happyHour for happyHour in happyHours if today in happyHour.days]
         
-        happyHoursA = [happyHour for happyHour in happyHours if
-                      (
-                       happyHour.end > happyHour.start
-                       and (datetime.combine(currentDate, happyHour.start) - timedelta(hours=happyHour.happyPlace.city.offset) < currentDatetime)
-                       and (datetime.combine(currentDate, happyHour.end) - timedelta(hours=happyHour.happyPlace.city.offset) > currentDatetime)
-                      )
-                      or (str(happyHour.end) == '00:00:02'and str(happyHour.start) == '00:00:01')
-                      ] 
-        happyHoursB = [happyHour for happyHour in happyHours if
-                      (
-                       happyHour.end < happyHour.start
-                       and (datetime.combine(tomorrowDate, happyHour.end) - timedelta(hours=happyHour.happyPlace.city.offset) > currentDatetime)
-                       and (datetime.combine(currentDate, happyHour.start) - timedelta(hours=happyHour.happyPlace.city.offset) < currentDatetime)
-                      )
-                      or (str(happyHour.end) == '00:00:02'and str(happyHour.start) == '00:00:01')
-                      ]
-        allHappyHours = happyHoursA + happyHoursB
+        happyHoursAllDay = [happyHour for happyHour in happyHours if
+                            str(happyHour.end) == '00:00:02'and str(happyHour.start) == '00:00:01'
+                           ]
+        
+        happyHoursSameDay = [happyHour for happyHour in happyHours if
+                            (
+                             happyHour.end > happyHour.start
+                             and (currentLocalDatetime >= datetime.combine(currentLocalDate, happyHour.start))
+                             and (currentLocalDatetime <= datetime.combine(currentLocalDate, happyHour.end))
+                            )
+                            ]
+        happyHoursOvernight = [happyHour for happyHour in happyHours if
+                            (
+                             happyHour.end < happyHour.start
+                             and 
+                             (
+                              (currentLocalDatetime >= datetime.combine(currentLocalDate, happyHour.start))
+                              or (currentLocalDatetime <= datetime.combine(currentLocalDate, happyHour.end))
+                             )
+                            )
+                            ]
+        
+#         happyHoursA = [happyHour for happyHour in happyHours if
+#                       (
+#                        happyHour.end > happyHour.start
+#                        and (datetime.combine(currentLocalDate, happyHour.end)  > currentLocalDatetime)
+#                        and (datetime.combine(currentLocalDate, happyHour.start) < currentLocalDatetime)
+#                       )
+#                       or (str(happyHour.end) == '00:00:02'and str(happyHour.start) == '00:00:01')                            
+#                       ]
+#         happyHoursB = [happyHour for happyHour in happyHours if
+#                       (
+#                        happyHour.end < happyHour.start
+#                        and (datetime.combine(tomorrowDate, happyHour.end) > currentLocalDatetime)
+#                        and (datetime.combine(currentLocalDate, happyHour.start) < currentLocalDatetime)
+#                       )
+#                       or (str(happyHour.end) == '00:00:02'and str(happyHour.start) == '00:00:01')
+#                       ]
+        allHappyHours = happyHoursAllDay + happyHoursSameDay + happyHoursOvernight
         
         happyPlaces = list(set(happyHour.happyPlace for happyHour in allHappyHours))
-        
+    
     if len(happyPlaces) == 0:
         return HttpResponseRedirect('/error/')
-        
+    
     context = {
                'happyPlaces' : happyPlaces
                , 'dayPairs' : DAYS
@@ -173,7 +233,8 @@ def Home(request):
                , 'lastSelectedCity' : request.POST.get('city') if request.POST.get('city') is not None else 'defaultCity'
                , 'lastSelectedNeighborhood' : request.POST.get('neighborhood') if request.POST.get('neighborhood') is not None else 'defaultNeighborhood'
                }
-    return render(request, 'home.html', context)
+    
+    return TemplateResponse(request, 'home.html', context)
 
 def Error(request):
     

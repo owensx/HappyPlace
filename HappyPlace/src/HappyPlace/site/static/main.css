@@ -29,7 +29,7 @@
 #report div.arrow { background:transparent url('./arrows.png') no-repeat scroll 0px -16px; width:16px; height:16px; display:block;}
 #report div.up { background-position:0px 0px;}
 
-#selectForm select {
+.selectForm select {
     width: 30%;
     padding: 16px 20px;
     border: none;
@@ -45,7 +45,7 @@ div.selectFormRow {
 	margin: auto;
 }
 
-#selectForm input[type=submit] {
+.selectForm input[type=submit] {
     font-family: Tahoma, Geneva, sans-serif;
  	font-size:1em;
 	font-variant: small-caps;

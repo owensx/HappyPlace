@@ -53,7 +53,13 @@ class HappyHour(models.Model):
     end = models.TimeField()
     
     happyPlace = models.ForeignKey(HappyPlace, related_name='happyHours')
+
+class CityForm(ModelForm):
     
+    class Meta:
+        model = City
+        fields = ['name', 'offset']
+        
 class HappyPlaceForm(ModelForm):
       
     site = forms.CharField(required=False)

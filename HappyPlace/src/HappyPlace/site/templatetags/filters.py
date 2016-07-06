@@ -1,6 +1,7 @@
 from django import template
 from django.template.defaultfilters import stringfilter
 import ast
+import re
 from HappyPlace.site.models import HappyPlace
 
 register = template.Library()
@@ -83,3 +84,8 @@ def formatTimeRange(start, end):
         return 'All Day'
     else:
         return str(start) + '-' + str(end)
+    
+@register.filter(name='beautifyPhone')
+def beautifyPhone(phone):
+    phone = re.sub('[\(\.\)\-\s]','',phone)
+    return phone
