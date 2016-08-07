@@ -234,6 +234,9 @@ def Home(request):
                , 'lastSelectedNeighborhood' : request.POST.get('neighborhood') if request.POST.get('neighborhood') is not None else 'defaultNeighborhood'
                }
     
+    if request.POST.get('mobileFlag') == 'true':
+        return TemplateResponse(request, 'home_mobile.html', context)
+    
     return TemplateResponse(request, 'home.html', context)
 
 def Error(request):

@@ -66,7 +66,7 @@ def formatTime(value):
         return 'Midnight'
     elif str(value) == '00:00:01':
         return 'Open'        
-    elif str(value) == '00:00:02':
+    elif str(value) == '00:02:01':
         return 'Close'
     else:
         value = str(value)[1::-1][::-1]

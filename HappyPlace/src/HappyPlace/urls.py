@@ -19,8 +19,8 @@ urlpatterns =  patterns('',
     url(r'^submitHappyHour/', 'HappyPlace.site.views.AddHappyHour', name='addHappyHour'),
     url(r'^submitHappyPlace/', 'HappyPlace.site.views.AddHappyPlace', name='addHappyPlace'),
     url(r'^error/', 'HappyPlace.site.views.Error', name='error'),
-    url(r'^', 'HappyPlace.site.views.Home', name='home'),    
-    url(r'^/', 'HappyPlace.site.views.Home', name='home'),
+    url(r'^(?P<mobileFlag>\w+)', 'HappyPlace.site.views.Home', name='home'),
+    url(r'^', 'HappyPlace.site.views.Home', name='splash'),    
         
 ) + staticfiles_urlpatterns()
 
