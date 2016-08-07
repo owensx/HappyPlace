@@ -144,6 +144,7 @@ def AddHappyHour(request):
             return render(request, 'submit.html', context)
             
 def Home(request):
+    mobileFlag = request.POST.get('mobileFlag')
     allHappyPlaces = HappyPlace.objects.filter(active=1)
     allCities = sorted(set(happyPlace.city.name for happyPlace in allHappyPlaces))
     
@@ -176,7 +177,6 @@ def Home(request):
         currentWeekdayInt = currentLocalDatetime.weekday()
         
         today = intToDayOfWeek(currentWeekdayInt)
-#         tomorrowDate = currentLocalDate + timedelta(days=1)
 
         happyHours = [happyHour for happyHour in happyHours if today in happyHour.days]
         
@@ -202,25 +202,19 @@ def Home(request):
                             )
                             ]
         
-#         happyHoursA = [happyHour for happyHour in happyHours if
-#                       (
-#                        happyHour.end > happyHour.start
-#                        and (datetime.combine(currentLocalDate, happyHour.end)  > currentLocalDatetime)
-#                        and (datetime.combine(currentLocalDate, happyHour.start) < currentLocalDatetime)
-#                       )
-#                       or (str(happyHour.end) == '00:00:02'and str(happyHour.start) == '00:00:01')                            
-#                       ]
-#         happyHoursB = [happyHour for happyHour in happyHours if
-#                       (
-#                        happyHour.end < happyHour.start
-#                        and (datetime.combine(tomorrowDate, happyHour.end) > currentLocalDatetime)
-#                        and (datetime.combine(currentLocalDate, happyHour.start) < currentLocalDatetime)
-#                       )
-#                       or (str(happyHour.end) == '00:00:02'and str(happyHour.start) == '00:00:01')
-#                       ]
-        allHappyHours = happyHoursAllDay + happyHoursSameDay + happyHoursOvernight
+        if mobileFlag == 'true':            
+            happyHoursSameDay = [happyHour for happyHour in happyHours if
+                            (
+                             happyHour.end > happyHour.start
+                             and (currentLocalDatetime >= (datetime.combine(currentLocalDate, happyHour.start) - timedelta(minutes=10)))
+                             and (currentLocalDatetime <= datetime.combine(currentLocalDate, happyHour.end))
+                            )
+                            ]
         
+        allHappyHours = happyHoursAllDay + happyHoursSameDay + happyHoursOvernight
         happyPlaces = list(set(happyHour.happyPlace for happyHour in allHappyHours))
+    
+    
     
     if len(happyPlaces) == 0:
         return HttpResponseRedirect('/error/')
@@ -234,7 +228,8 @@ def Home(request):
                , 'lastSelectedNeighborhood' : request.POST.get('neighborhood') if request.POST.get('neighborhood') is not None else 'defaultNeighborhood'
                }
     
-    if request.POST.get('mobileFlag') == 'true':
+    if mobileFlag == 'true':
+        print('rendering mobile template')
         return TemplateResponse(request, 'home_mobile.html', context)
     
     return TemplateResponse(request, 'home.html', context)
