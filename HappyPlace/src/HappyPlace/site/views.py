@@ -145,8 +145,8 @@ def AddHappyHour(request):
             
 def Home(request):
     mobileFlag = request.POST.get('mobileFlag')
-    allHappyPlaces = HappyPlace.objects.filter(active=1)
-    allCities = sorted(set(happyPlace.city.name for happyPlace in allHappyPlaces))
+    allActiveHappyPlaces = HappyPlace.objects.filter(active=True)
+    allCities = sorted(set(happyPlace.city.name for happyPlace in allActiveHappyPlaces))
     
     if request.method == 'GET':
         context = {
@@ -158,15 +158,15 @@ def Home(request):
         print('received POST on home view')
         if request.POST.get('city') == 'defaultCity':
             print('no city selected, returning all happyPlaces')
-            happyPlaces = allHappyPlaces           
+            happyPlaces = allActiveHappyPlaces           
         elif request.POST.get('neighborhood') == 'all' or request.POST.get('neighborhood') == None:
             print('no neighborhood selected, returning all happyPlaces in ' + request.POST.get('city'))
             happyPlaces = City.objects.get(name=request.POST.get('city')).happyPlaces.all()
         else:
             print('returning all happyPlaces in ' + request.POST.get('neighborhood') + ', ' + request.POST.get('city'))
-            happyPlaces = HappyPlace.objects.filter(neighborhood=request.POST.get('neighborhood'), active=1)
+            happyPlaces = allActiveHappyPlaces.filter(neighborhood=request.POST.get('neighborhood'))
     else:
-        happyPlaces = allHappyPlaces
+        happyPlaces = allActiveHappyPlaces
 
     if request.POST.get('currentTimeOnly') and not request.POST.get('city') == 'defaultCity':
         print('only returning happyHours happening now')

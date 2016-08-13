@@ -69,14 +69,19 @@ def formatTime(value):
     elif str(value) == '02:01:00':
         return 'Close'
     else:
-        value = str(value)[1::-1][::-1]
-        value = int(value)
+        hoursValue = str(value)[:2]
+        hoursValue = int(hoursValue)
         
-        ampm = 'pm' if value > 11 else 'am'
+        minutesValue = str(value)[3:5]
         
-        value = value if value < 13 else value - 12
+        ampm = 'pm' if hoursValue > 11 else 'am'
         
-        return str(value)+ampm
+        hoursValue = hoursValue if hoursValue < 13 else hoursValue - 12
+        
+        if minutesValue == '00':
+            return str(hoursValue)+ampm
+        else:
+            return str(hoursValue)+":"+minutesValue+ampm
 
 @register.filter(name='formatTimeRange')
 def formatTimeRange(start, end):
