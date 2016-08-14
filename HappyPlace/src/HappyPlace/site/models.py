@@ -2,6 +2,7 @@ from django.db import models
 from django.forms import ModelForm
 from django import forms
 from django.contrib.admin import widgets
+from ctypes import WinError
 
 DAYS = (('S','Sunday')
     ,('M','Monday')
@@ -51,9 +52,15 @@ class HappyHour(models.Model):
     days = models.CharField(max_length=100,choices=DAYS)
     start = models.TimeField()
     end = models.TimeField()
+    beer = models.CharField(max_length=200, null=True)
+    wine_glass = models.CharField(max_length=200, null=True)
+    wine_bottle = models.CharField(max_length=200, null=True)
+    well = models.CharField(max_length=200, null=True)
+    shot_beer = models.CharField(max_length=200, null=True)
+    display_notes = models.CharField(max_length=200)
     
     happyPlace = models.ForeignKey(HappyPlace, related_name='happyHours')
-
+    
 class CityForm(ModelForm):
     
     class Meta:
@@ -76,6 +83,12 @@ class HappyHourForm(ModelForm):
     happyPlace = forms.ModelChoiceField(queryset=HappyPlace.objects.all().order_by('name'))
     days = forms.MultipleChoiceField(choices=DAYS, widget=forms.CheckboxSelectMultiple())
     
+    beer = forms.CharField(required=False)
+    wine_glass = forms.CharField(required=False)
+    wine_bottle = forms.CharField(required=False)
+    well = forms.CharField(required=False)
+    shot_beer = forms.CharField(required=False)
+
     class Meta:
         model = HappyHour
-        fields = ['start', 'end', 'notes']
+        fields = ['start', 'end', 'notes','display_notes']

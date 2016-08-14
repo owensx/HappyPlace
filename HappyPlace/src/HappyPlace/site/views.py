@@ -9,6 +9,8 @@ from HappyPlace.site.templatetags.filters import *
 from django.core import serializers
 import json
 from django.template.response import TemplateResponse
+from django.contrib.staticfiles.templatetags.staticfiles import static
+from HappyPlace import settings
 
 def SubmissionFormsView(request):
     
@@ -145,6 +147,8 @@ def AddHappyHour(request):
             
 def Home(request):
     mobileFlag = request.POST.get('mobileFlag')
+    desktopOverride = request.POST.get('desktopOverride')
+
     allActiveHappyPlaces = HappyPlace.objects.filter(active=True)
     allCities = sorted(set(happyPlace.city.name for happyPlace in allActiveHappyPlaces))
     
@@ -161,7 +165,7 @@ def Home(request):
             happyPlaces = allActiveHappyPlaces           
         elif request.POST.get('neighborhood') == 'all' or request.POST.get('neighborhood') == None:
             print('no neighborhood selected, returning all happyPlaces in ' + request.POST.get('city'))
-            happyPlaces = City.objects.get(name=request.POST.get('city')).happyPlaces.all()
+            happyPlaces = allActiveHappyPlaces.filter(city=City.objects.get(name=request.POST.get('city')))
         else:
             print('returning all happyPlaces in ' + request.POST.get('neighborhood') + ', ' + request.POST.get('city'))
             happyPlaces = allActiveHappyPlaces.filter(neighborhood=request.POST.get('neighborhood'))
@@ -218,14 +222,15 @@ def Home(request):
     
     if len(happyPlaces) == 0:
         return HttpResponseRedirect('/error/')
-    
     context = {
                'happyPlaces' : happyPlaces
                , 'dayPairs' : DAYS
                , 'today' : intToDayOfWeek((datetime.utcnow() + timedelta(hours=happyPlaces[0].city.offset)).weekday())
                , 'cities' : allCities
                , 'lastSelectedCity' : request.POST.get('city') if request.POST.get('city') is not None else 'defaultCity'
-               , 'lastSelectedNeighborhood' : request.POST.get('neighborhood') if request.POST.get('neighborhood') is not None else 'defaultNeighborhood'
+               , 'lastSelectedNeighborhood' : request.POST.get('neighborhood') if request.POST.get('neighborhood') is not None else 'all'
+               , 'mobileFlag' : mobileFlag
+               , 'desktopOverride' : desktopOverride
                }
     
     if mobileFlag == 'true':
@@ -242,13 +247,22 @@ def getNeighborhoodsForCity(request, cityToSearch):
     #reconstruct spaces in search parameter
     cityToSearch = cityToSearch.replace('_', ' ')
     city = City.objects.get(name=cityToSearch)
-    happyPlacesInCity = city.happyPlaces.all()
+    happyPlacesInCity = city.happyPlaces.all().filter(active=1)
     
     allNeighborhoods = (happyPlace.neighborhood for happyPlace in happyPlacesInCity)
     uniqueNeighborhoods = sorted(set(allNeighborhoods))
     
     return HttpResponse(json.dumps(list(uniqueNeighborhoods)), content_type="application/javascript")
-
+def getPhotos(request, location):
+    
+    if location.endswith('all'):
+        location = location[:len(location)-3]
+        
+    folderContents=os.listdir(os.path.join(settings.STATIC_ROOT,location))
+    photos= list(name for name in folderContents if os.path.isfile(os.path.join(settings.STATIC_ROOT, location + "/" + name)))
+    
+    return HttpResponse(json.dumps(len(photos)), content_type="application/javascript")
+ 
 def generateId(objects):
     
     generatedId = uuid4().int % 1000000000
