@@ -2,7 +2,6 @@ from django import template
 from django.template.defaultfilters import stringfilter
 import ast
 import re
-from HappyPlace.site.models import HappyPlace
 
 register = template.Library()
 
@@ -94,3 +93,9 @@ def formatTimeRange(start, end):
 def beautifyPhone(phone):
     phone = re.sub('[\(\.\)\-\s]','',phone)
     return phone
+
+@register.filter(name='getMarkerInfo')
+def getMarkerInfo(happyPlaces):
+    return list(map(lambda happyPlace : happyPlace.markerInfo, happyPlaces))
+def __str__(self):
+        return self.happyPlace.name + ' ' + self.start.__str__() + ' - ' + self.end

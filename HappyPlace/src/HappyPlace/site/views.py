@@ -1,4 +1,5 @@
 import os
+from googleplaces import GooglePlaces, types, lang
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from HappyPlace.site.models import *
@@ -121,7 +122,13 @@ def AddHappyHour(request):
                     ,days=form.cleaned_data['days']
                     ,start=form.cleaned_data['start']
                     ,end=form.cleaned_data['end']
-                    ,happyPlace= form.cleaned_data['happyPlace']
+                    ,happyPlace=form.cleaned_data['happyPlace']
+                    ,beer=form.cleaned_data['beer']
+                    ,wine_glass=form.cleaned_data['wine_glass']
+                    ,wine_bottle=form.cleaned_data['wine_bottle']
+                    ,shot_beer=form.cleaned_data['shot_beer']
+                    ,well=form.cleaned_data['well']
+                    ,display_notes=form.cleaned_data['display_notes']
                     )
             
             print("happyHour created: ")
@@ -147,9 +154,12 @@ def AddHappyHour(request):
             
 def Home(request):
     mobileFlag = request.POST.get('mobileFlag')
-    desktopOverride = request.POST.get('desktopOverride')
-
-    allActiveHappyPlaces = HappyPlace.objects.filter(active=True)
+    mobileOverride = request.POST.get('mobileOverride')
+    #mapDisplay = 'initial' if request.POST.get('mapDisplay') == None else request.POST.get('mapDisplay')
+    #tableDisplay = request.POST.get('tableDisplay')
+    rightNowFlag = 'true' if request.POST.get('currentTimeOnly') is not None else 'false'
+    
+    allActiveHappyPlaces = HappyPlace.objects.filter(active=True).exclude(place_id__isnull=True)
     allCities = sorted(set(happyPlace.city.name for happyPlace in allActiveHappyPlaces))
     
     if request.method == 'GET':
@@ -185,7 +195,7 @@ def Home(request):
         happyHours = [happyHour for happyHour in happyHours if today in happyHour.days]
         
         happyHoursAllDay = [happyHour for happyHour in happyHours if
-                            str(happyHour.end) == '00:00:02'and str(happyHour.start) == '00:00:01'
+                            str(happyHour.end) == '02:01:00'and str(happyHour.start) == '00:00:01'
                            ]
         
         happyHoursSameDay = [happyHour for happyHour in happyHours if
@@ -216,21 +226,28 @@ def Home(request):
                             ]
         
         allHappyHours = happyHoursAllDay + happyHoursSameDay + happyHoursOvernight
+        #allHappyHours = allHappyHours.order_by('start')
+        
         happyPlaces = list(set(happyHour.happyPlace for happyHour in allHappyHours))
     
     
+    happyPlaces = sorted(happyPlaces,key=lambda happyPlace:happyPlace.neighborhood);
     
     if len(happyPlaces) == 0:
         return HttpResponseRedirect('/error/')
     context = {
                'happyPlaces' : happyPlaces
+               , 'mapCenter' : json.dumps(getAverageLatLng(happyPlaces))
                , 'dayPairs' : DAYS
                , 'today' : intToDayOfWeek((datetime.utcnow() + timedelta(hours=happyPlaces[0].city.offset)).weekday())
                , 'cities' : allCities
                , 'lastSelectedCity' : request.POST.get('city') if request.POST.get('city') is not None else 'defaultCity'
                , 'lastSelectedNeighborhood' : request.POST.get('neighborhood') if request.POST.get('neighborhood') is not None else 'all'
                , 'mobileFlag' : mobileFlag
-               , 'desktopOverride' : desktopOverride
+               , 'mobileOverride' : mobileOverride
+               , 'rightNowFlag' : rightNowFlag
+               #, 'mapDisplay' : mapDisplay
+               #, 'tableDisplay' : tableDisplay
                }
     
     if mobileFlag == 'true':
@@ -243,6 +260,7 @@ def Error(request):
     
     return render(request, 'error.html')
 
+
 def getNeighborhoodsForCity(request, cityToSearch):
     #reconstruct spaces in search parameter
     cityToSearch = cityToSearch.replace('_', ' ')
@@ -253,18 +271,28 @@ def getNeighborhoodsForCity(request, cityToSearch):
     uniqueNeighborhoods = sorted(set(allNeighborhoods))
     
     return HttpResponse(json.dumps(list(uniqueNeighborhoods)), content_type="application/javascript")
-def getPhotos(request, location):
-    
+
+def getPhotos(request, location):    
     if location.endswith('all'):
         location = location[:len(location)-3]
         
-    folderContents=os.listdir(os.path.join(settings.STATIC_ROOT,location))
-    photos= list(name for name in folderContents if os.path.isfile(os.path.join(settings.STATIC_ROOT, location + "/" + name)))
+    folderContents=os.listdir(os.path.join(settings.STATIC_ROOT + 'photos',location))
+    photos=list(name for name in folderContents if (os.path.isfile(os.path.join(settings.STATIC_ROOT + 'photos', location + "/" + name))) and name.endswith('jpg'))
     
     return HttpResponse(json.dumps(len(photos)), content_type="application/javascript")
- 
-def generateId(objects):
+
+def getAverageLatLng(happyPlaces):
+    sumLat = 0
+    sumLng = 0
+    latLngs = [happyPlace.latLng for happyPlace in happyPlaces]
     
+    for latLng in latLngs:        
+        sumLat += latLng['lat']
+        sumLng += latLng['lng']
+    
+    return list([float(sumLat/len(happyPlaces)), float(sumLng/len(happyPlaces))])
+
+def generateId(objects):    
     generatedId = uuid4().int % 1000000000
 
     while objects.filter(id=generatedId):

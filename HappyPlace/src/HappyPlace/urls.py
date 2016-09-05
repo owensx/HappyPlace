@@ -19,7 +19,7 @@ urlpatterns =  patterns('',
     url(r'^submitHappyHour/', 'HappyPlace.site.views.AddHappyHour', name='addHappyHour'),
     url(r'^submitHappyPlace/', 'HappyPlace.site.views.AddHappyPlace', name='addHappyPlace'),
     url(r'^error/', 'HappyPlace.site.views.Error', name='error'),
-    url(r'^getPhotos/(?P<location>\w+\/\w+)', 'HappyPlace.site.views.getPhotos', name = 'getPhotos'),
+    url(r'^getPhotos/(?P<location>.+\/.+)', 'HappyPlace.site.views.getPhotos', name = 'getPhotos'),
     url(r'^', 'HappyPlace.site.views.Home', name='splash'),    
         
 ) + staticfiles_urlpatterns()
