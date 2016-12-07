@@ -1,127 +1,117 @@
-<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+{% load filters %}
+{% load staticfiles %}
+ <!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+	<link rel="stylesheet" href="{% static 'css/submit/submit.css' %}" type="text/css">
   
-<script src="//code.jquery.com/jquery-1.10.2.js"></script>
-<script src="//code.jquery.com/ui/1.11.4/jquery-ui.js"></script>
-<script type="text/javascript">
-	$(document).ready(function(){
-       	 $("input#fromOpen").change(function(){
-       	 	if($(this).prop('checked')){       	 		
-       	 		$("input#id_start").attr('disabled', true);
-       	 	} else {
-       	 		$("input#id_start").val("");
-       	 		
-       	 		$("input#id_start").attr('disabled', false);
-       	 	}
-       	 });
-       	 $("input#toClose").change(function(){
-       	 	if($(this).prop('checked')){       	 		
-       	 		$("input#id_end").attr('disabled', true);
-       	 	} else {
-       	 		$("input#id_end").val("");
-       	 		
-       	 		$("input#id_end").attr('disabled', false);
-       	 	}
-       	 });
-       	 
-       	 		
-    });
-     
-    function dailyClick(buttonName){
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDj5RUzdluGjmLNjSVXASlDyvK_LIZ4Qq8&libraries=places" type="text/javascript"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js" type="text/javascript"></script>
+	<script src="{{ STATIC_URL}}js/submit/submit.js" type="text/javascript"></script>
+	<script src="{{ STATIC_URL}}js/submit/map.js" type="text/javascript"></script>
+	
+	<script type="text/javascript">	
+		$(document).ready(function(){
+			init();		
+			hideHappyPlaceFormInputFields();					
+		});
+	</script>
+</head>
 
-    	$("#id_days_0").prop('checked', false);
-	    $("#id_days_1").prop('checked', false);
-	    $("#id_days_2").prop('checked', false);
-	    $("#id_days_3").prop('checked', false);
-	    $("#id_days_4").prop('checked', false);
-	    $("#id_days_5").prop('checked', false);
-	    $("#id_days_6").prop('checked', false);
-      
-    	switch (buttonName){
-    		case 'daily':
-	    		$("#id_days_0").prop('checked', true);
-	    		$("#id_days_1").prop('checked', true);
-	    		$("#id_days_2").prop('checked', true);
-	    		$("#id_days_3").prop('checked', true);
-	    		$("#id_days_4").prop('checked', true);
-	    		$("#id_days_5").prop('checked', true);
-	    		$("#id_days_6").prop('checked', true);
-	    		break;
-	    		
-	    	case 'weekdays':
-	    		$("#id_days_1").prop('checked', true);
-	    		$("#id_days_2").prop('checked', true);
-	    		$("#id_days_3").prop('checked', true);
-	    		$("#id_days_4").prop('checked', true);
-	    		$("#id_days_5").prop('checked', true);
-	    		break;
-	    		
-	    	case 'weekends':
-	    		$("#id_days_0").prop('checked', true);
-	    		$("#id_days_6").prop('checked', true);
-	    		break;
-    	}
-    }	
-        
-    function onHappyHourSubmit(){
-		$("input#id_start").attr('disabled', false);
-		$("input#id_end").attr('disabled', false);  
-       	
-		if($("input#fromOpen").prop('checked')){
-   	 		$("input#id_start").val("00:00:01");
-   		}
-   		if($("input#toClose").prop('checked')){
-   			$("input#id_end").val("02:01:00");
-  		}
-  	}
-</script>
-
-
-Submit photos here: <br>
-
-Photos should have ALL of the following: <br>
-Name of HappyPlace <br>
-Days happy hour occurs <br>
-Times happy hour occurs <br> 
-The special (the more detailed the better) <br>
-
-<b><i>City Form</i></b>
-
-<form id="cityForm" enctype="multipart/form-data" action="/submitCity/" method="post">
-	{% csrf_token %}
-  	
-    {{ cityForm.as_p }}
+<body>
+	<div id="form" class="halfScreen" style="text-align:center">
+		
+		<div id="stateSubmit" style="display: {{ displayStateSumbit }};">
+			<br/>
+			<br/>
+			Choose a state below to get started!
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<form id="stateForm" enctype="multipart/form-data" onSubmit="onStateFormSumbit()" action="/submit/" method="post">
+			  	{% csrf_token %}
+			  	
+			    {{ stateForm.as_p }}			
+			    <input type="submit" value="Submit">
+			    
+				<input type="hidden" name="formType" value="stateForm">
+			</form>
+		</div>
+		
+		<div id="citySubmit" style="display: {{ displayCitySumbit }};">
+			<br/>
+			<br/>
+			Choose a city! If you don't see your city, add it using the text box below!	
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<form id="cityForm" enctype="multipart/form-data" onSubmit="onCityFormSumbit()" action="/submit/" method="post">
+			  	{% csrf_token %}
+			  	
+			    {{ cityForm.as_p }}			
+			    <input type="submit" value="Submit">
+			    
+				<input type="hidden" name="formType" value="cityForm">
+				<input type="hidden" name="stateId" value="{{ stateId }}">
+			</form>
+		</div>
+		
+		<div id="happyPlaceSubmit" style="display: {{ displayHappyPlaceSumbit }};">
+			<br/>
+			<br/>
+			Search your HappyPlace below! 
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<form id="happyPlaceForm" enctype="multipart/form-data" onSubmit="onHappyPlaceFormSumbit()" action="/submit/" method="post">
+			  	{% csrf_token %}
+			  	
+			    {{ happyPlaceForm.as_p }}    
+			    <button type="button" id="searchButton" onClick="onSearchButtonClick()"> Search </button>
+			    </br>
+			    <button type="button" id="prevButton" onClick="loadPrevGooglePlace()"> Prev </button>
+			    <button type="button" id="nextButton" onClick="loadNextGooglePlace()"> Next </button>
+			    </br>
+			    <input type="submit" id="submitButton" value="Select">
+			    
+				<input type="hidden" name="formType" value="happyPlaceForm">
+				<input type="hidden" name="cityId" value="{{ cityId }}">
+			</form>
+		</div>
+		
+		<div id="happyHourSubmit" style="display: {{ displayHappyHourSumbit }};">
+			<form id="happyHourForm" enctype="multipart/form-data" onSubmit="onHappyHourFormSumbit()" action="/submit/" method="post">
+			  	{% csrf_token %}
+			  	Enter happy hour details for
+			  	<br/>
+			  	<i>{{ happyPlace }}!</i>
+			  	<br/>
+				<br/>
+			    <label for="fromOpen"><input id="fromOpen" name="fromOpen" type="checkbox"> From Open </label>
+			    <label for="toClose"><input id="toClose" name="toClose" type="checkbox"> To Close </label>
+			    
+			    {{ happyHourForm.as_p }}
+			    
+			    <button for="daily" id="daily" name="daily" type="button" onCLick="setHappyHourDays('daily')"> Daily </button>
+			    <button for="weekdays" id="weekdays" name="weekdays" type="button" onCLick="setHappyHourDays('weekdays')"> Weekdays </button>
+			    <button for="weekends" id="weekends" name="weekends" type="button" onCLick="setHappyHourDays('weekends')"> Weekends </button>
+			    <button for="clear" id="clear" name="clear" type="button" onCLick="clearHappyHourDays()"> Clear </button>
+			    </br>
+			    </br>
+			    <input onClick="onHappyHourSubmit()" type="submit" value="Submit">
     
-    <input type="submit" value="Submit">
-</form>
+				<input type="hidden" name="formType" value="happyHourForm">
+				<input type="hidden" name="happyPlaceId" value="{{ happyPlaceId }}">
+			</form>
+			Click <a href="http://owensx.pythonanywhere.com">here</a> to return to the homepage!
+		</div>
+		
+	</div>
+	
+	<div id="map" class="halfScreen"></div>
 
-<b><i>Happy Place Form</i></b>
-
-<form id="happyHourForm" enctype="multipart/form-data" action="/submitHappyPlace/" method="post">
-  	{% csrf_token %}
-  	
-    {{ happyPlaceForm.as_p }}
-    
-    <input type="submit" value="Submit">
-</form>
-
-<b><i>Happy Hour Form</i></b>
-
-<form enctype="multipart/form-data" action="/submitHappyHour/" method="post">
-  	{% csrf_token %}
-  	
-    <label for="fromOpen"><input id="fromOpen" name="fromOpen" type="checkbox"> From Open </label>
-    <label for="toClose"><input id="toClose" name="toClose" type="checkbox"> To Close </label>
-    {{ happyHourForm.as_p }}
-    
-    <button for="daily" id="daily" name="daily" type="button" onCLick="dailyClick('daily')"> Daily </button>
-    <button for="weekdays" id="weekdays" name="weekdays" type="button" onCLick="dailyClick('weekdays')"> Weekdays </button>
-    <button for="weekends" id="weekends" name="weekends" type="button" onCLick="dailyClick('weekends')"> Weekends </button>
-    </br>
-    </br>
-    <input onClick="onHappyHourSubmit()" type="submit" value="Submit">
-</form>
-
-
-{#<div id="dialog-message" title="Basic dialog">#}
-{#  <p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.</p>#}
-{#</div>#}
+</body>

@@ -1,0 +1,33 @@
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+	$(document).ready(function(){
+		$("#id_latitude").attr('hidden', true);
+		$("label[for='id_latitude']").attr('hidden', true);
+		
+		$("#id_longitude").attr('hidden', true);
+		$("label[for='id_longitude']").attr('hidden', true);
+		
+		$("#id_city").attr('hidden', true);
+		$("label[for='id_city']").attr('hidden', true);
+		
+		$("#id_place_id").attr('hidden', true);
+		$("label[for='id_place_id']").attr('hidden', true);
+    });
+  	
+  	
+
+</script>
+<b><i>Happy Place Form</i></b>
+
+<form id="happyPlaceForm" enctype="multipart/form-data" action="/submitHappyPlaceForCity/{{ cityId }}/" method="post">
+  	{% csrf_token %}
+  	
+    {{ happyPlaceForm.as_p }}
+    <button type="button" onCLick="inflate()"> Inflate </button>
+    <button type="button" onCLick="clearForm('#happyPlaceForm')"> Clear </button>
+    <input type ="checkbox" id="active" name="active"> Activate? </input>
+    <input type="submit" value="Submit">
+</form>

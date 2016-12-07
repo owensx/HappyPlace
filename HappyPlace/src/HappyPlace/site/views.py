@@ -1,165 +1,100 @@
 import os
+import json
+from HappyPlace.site.utils import *
 from googleplaces import GooglePlaces, types, lang
 from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponseRedirect
 from HappyPlace.site.models import *
-from uuid import uuid4
-from django.http.response import HttpResponseBadRequest, HttpResponse
 from datetime import datetime, time, timedelta
 from HappyPlace.site.templatetags.filters import *
 from django.core import serializers
-import json
 from django.template.response import TemplateResponse
 from django.contrib.staticfiles.templatetags.staticfiles import static
 from HappyPlace import settings
+from django.core.urlresolvers import reverse
 
-def SubmissionFormsView(request):
-    
-    cityForm = CityForm()
-    happyPlaceForm = HappyPlaceForm()
-    happyHourForm = HappyHourForm()
-    
+def Submit(request):
     context = {
-               'cityForm' : cityForm
-               , 'happyPlaceForm' : happyPlaceForm
-               , 'happyHourForm' : happyHourForm
-               }        
+               'displayStateSumbit': 'initial'
+               , 'displayCitySumbit': 'none'
+               , 'displayHappyPlaceSumbit': 'none'
+               , 'displayHappyHourSumbit': 'none'
+               }
+    
+    if request.method == 'GET':
+        context['stateForm'] = StateForm()
+        
+    elif request.method == 'POST':
+        formType = request.POST.get('formType')
+
+        if formType == 'stateForm':
+            stateForm = StateForm(request.POST)
+            
+            if stateForm.is_valid():
+                formData = stateForm.cleaned_data
+                
+                state = formData['state']
+                             
+                cityForm = CityForm()                
+                initCityFormView(cityForm, state, context)
+                
+        elif formType == 'cityForm':
+            cityForm = CityForm(request.POST)
+            state = State.objects.get(id=request.POST.get('stateId'))
+            
+            if cityForm.is_valid():
+                formData = cityForm.cleaned_data
+                        
+                if not formData['city']:
+                    city = saveNewCity(formData, state)
+                else:
+                    city = formData['city']
+                
+                happyPlaceForm = HappyPlaceForm(initial={'city': city})
+                initHappyPlaceFormView(happyPlaceForm, city, context)
+             
+            else:
+                initCityFormView(cityForm, state, context)
+                   
+        elif formType == 'happyPlaceForm':
+            happyPlaceForm = HappyPlaceForm(request.POST)
+            city = City.objects.get(id=request.POST.get('cityId'))
+            
+            if happyPlaceForm.is_valid():
+                formData = happyPlaceForm.cleaned_data
+                
+                happyPlace = saveNewHappyPlace(formData, city)                
+                    
+                happyHourForm = HappyHourForm()                
+                initHappyHourFormView(happyHourForm, happyPlace, context)
+            
+            else:
+                initHappyPlaceFormView(happyPlaceForm, city, context)
+            
+        elif formType == 'happyHourForm':
+            happyHourForm = HappyHourForm(request.POST)
+            happyPlace = HappyPlace.objects.get(id=request.POST.get('happyPlaceId'))
+            
+            if happyHourForm.is_valid():
+                formData = happyHourForm.cleaned_data
+                
+                saveNewHappyHour(formData, happyPlace)
+                
+                return HttpResponseRedirect(reverse('home'))
+            
+            else:
+                initHappyHourFormView(happyHourForm, happyPlace, context)
+                
     return render(request, 'submit.html', context)
 
-def AddCity(request):
-    if request.method == 'POST':
-        print("received city form POST")
-        form = CityForm(request.POST)
-         
-        if form.is_valid():
-            print ("form validated")
-            idToInsert = generateId(City.objects)
-             
-            city = City(
-                    id=idToInsert
-                    ,name=form.cleaned_data['name']
-                    ,offset=form.cleaned_data['offset']
-                    )
-            
-            city.save()
-            print("city saved successfully")
-            
-        else:
-            print('could not validate form: ' + str(form.errors.as_data()))
-            context = {
-               'happyPlaceForm' : form
-               , 'happyHourForm' : HappyHourForm()
-               }        
-            return render(request, 'submit.html', context)
-            
-    return HttpResponseRedirect('/submit')
-def AddHappyPlace(request):
-    if request.method == 'POST':
-        print("received happyPlace form POST")
-        form = HappyPlaceForm(request.POST)
-
-        if form.is_valid():
-            print ("form validated")
-            idToInsert = generateId(HappyPlace.objects)
-
-            if not form.cleaned_data['site'] == '':
-                print('site field populated: ' + form.cleaned_data['site'])                            
-                if not form.cleaned_data['site'].startswith('http'):
-                    print('prepending http...')
-                    form.cleaned_data['site'] = 'http://' + form.cleaned_data['site']
-                
-            happyPlace = HappyPlace(
-                        id=idToInsert
-                      , name=form.cleaned_data['name']
-                      , address=form.cleaned_data['address']
-                      , neighborhood=form.cleaned_data['neighborhood']
-                      , city=form.cleaned_data['city']
-                      
-                      , cross=None if form.cleaned_data['cross'] == '' else form.cleaned_data['cross']
-                      , site=None if form.cleaned_data['site'] == '' else form.cleaned_data['site']
-                      , phone=None if form.cleaned_data['phone'] == '' else beautifyPhone(form.cleaned_data['phone'])
-                      , latitude=None if form.cleaned_data['latitude'] == '' else form.cleaned_data['latitude']
-                      , longitude=None if form.cleaned_data['longitude'] == '' else form.cleaned_data['longitude']
-                    )
-            
-            print("happyPlace created: ")
-            print("\tid: "+ str(happyPlace.id))
-            print("\tname: "+ str(happyPlace.name))
-            print("\taddress: "+ str(happyPlace.address))
-            print("\tneighborhood: "+ str(happyPlace.neighborhood))
-            print("\tcity: "+ str(happyPlace.city))
-            print("\tcross: "+ str(happyPlace.cross))
-            print("\tsite: "+ str(happyPlace.site))
-            print("\tphone: "+ str(happyPlace.phone))
-            print("\tlatitude: "+ str(happyPlace.latitude))
-            print("\tlongitude: "+ str(happyPlace.longitude))
-            
-            happyPlace.save()
-            print("happyPlace saved successfully")
-            
-            return HttpResponseRedirect('/submit')    
-        
-        else:
-            print('could not validate form: ' + str(form.errors.as_data()))
-            context = {
-               'happyPlaceForm' : form
-               , 'happyHourForm' : HappyHourForm()
-               }        
-            return render(request, 'submit.html', context)
-        
-def AddHappyHour(request):
-    if request.method == 'POST':
-        print("received happyHour form POST")
-        form = HappyHourForm(request.POST)
-            
-        if form.is_valid():            
-            print ("form validated")            
-            idToInsert = generateId(HappyHour.objects)
-            
-            happyHour = HappyHour(
-                    id=idToInsert
-                    ,notes=form.cleaned_data['notes']
-                    ,days=form.cleaned_data['days']
-                    ,start=form.cleaned_data['start']
-                    ,end=form.cleaned_data['end']
-                    ,happyPlace=form.cleaned_data['happyPlace']
-                    ,beer=form.cleaned_data['beer']
-                    ,wine_glass=form.cleaned_data['wine_glass']
-                    ,wine_bottle=form.cleaned_data['wine_bottle']
-                    ,shot_beer=form.cleaned_data['shot_beer']
-                    ,well=form.cleaned_data['well']
-                    ,display_notes=form.cleaned_data['display_notes']
-                    )
-            
-            print("happyHour created: ")
-            print("\tid: "+ str(happyHour.id))
-            print("\tnotes: "+ str(happyHour.notes))
-            print("\tdays: "+ str(happyHour.days))
-            print("\tstart: "+ str(happyHour.start))
-            print("\tend: "+ str(happyHour.end))
-            print("\thappyPlace: "+ str(happyHour.happyPlace.name))
-            
-            happyHour.save()
-            print("happyHour saved")
-            
-            return HttpResponseRedirect('/submit')
-        
-        else:
-            print('could not validate form: ' + str(form.errors.as_data()))
-            context = {
-               'happyPlaceForm' : HappyPlaceForm()
-               , 'happyHourForm' : form
-               }        
-            return render(request, 'submit.html', context)
-            
 def Home(request):
     mobileFlag = request.POST.get('mobileFlag')
     mobileOverride = request.POST.get('mobileOverride')
-    #mapDisplay = 'initial' if request.POST.get('mapDisplay') == None else request.POST.get('mapDisplay')
-    #tableDisplay = request.POST.get('tableDisplay')
+    mapDisplay = 'initial' if request.POST.get('mapDisplay') == None else request.POST.get('mapDisplay')
+    tableDisplay = request.POST.get('tableDisplay')
     rightNowFlag = 'true' if request.POST.get('currentTimeOnly') is not None else 'false'
     
-    allActiveHappyPlaces = HappyPlace.objects.filter(active=True).exclude(place_id__isnull=True)
+    allActiveHappyPlaces = HappyPlace.objects.filter(active=True).exclude(latitude__isnull=True)
     allCities = sorted(set(happyPlace.city.name for happyPlace in allActiveHappyPlaces))
     
     if request.method == 'GET':
@@ -186,7 +121,7 @@ def Home(request):
         print('only returning happyHours happening now')
         happyHours = [happyHour for happyPlace in happyPlaces for happyHour in happyPlace.happyHours.all()]
         
-        currentLocalDatetime = datetime.utcnow() + timedelta(hours=happyHours[0].happyPlace.city.offset)
+        currentLocalDatetime = datetime.utcnow() + timedelta(hours=happyHours[0].happyPlace.city.state.offset)
         currentLocalDate = currentLocalDatetime.date()
         currentWeekdayInt = currentLocalDatetime.weekday()
         
@@ -232,22 +167,23 @@ def Home(request):
     
     
     happyPlaces = sorted(happyPlaces,key=lambda happyPlace:happyPlace.neighborhood);
-    
+
     if len(happyPlaces) == 0:
         return HttpResponseRedirect('/error/')
+    
     context = {
                'happyPlaces' : happyPlaces
                , 'mapCenter' : json.dumps(getAverageLatLng(happyPlaces))
                , 'dayPairs' : DAYS
-               , 'today' : intToDayOfWeek((datetime.utcnow() + timedelta(hours=happyPlaces[0].city.offset)).weekday())
+               , 'today' : intToDayOfWeek((datetime.utcnow() + timedelta(hours=happyPlaces[0].city.state.offset)).weekday())
                , 'cities' : allCities
                , 'lastSelectedCity' : request.POST.get('city') if request.POST.get('city') is not None else 'defaultCity'
                , 'lastSelectedNeighborhood' : request.POST.get('neighborhood') if request.POST.get('neighborhood') is not None else 'all'
                , 'mobileFlag' : mobileFlag
                , 'mobileOverride' : mobileOverride
                , 'rightNowFlag' : rightNowFlag
-               #, 'mapDisplay' : mapDisplay
-               #, 'tableDisplay' : tableDisplay
+               , 'mapDisplay' : mapDisplay
+               , 'tableDisplay' : tableDisplay
                }
     
     if mobileFlag == 'true':
@@ -261,42 +197,221 @@ def Error(request):
     return render(request, 'error.html')
 
 
-def getNeighborhoodsForCity(request, cityToSearch):
-    #reconstruct spaces in search parameter
-    cityToSearch = cityToSearch.replace('_', ' ')
-    city = City.objects.get(name=cityToSearch)
-    happyPlacesInCity = city.happyPlaces.all().filter(active=1)
-    
-    allNeighborhoods = (happyPlace.neighborhood for happyPlace in happyPlacesInCity)
-    uniqueNeighborhoods = sorted(set(allNeighborhoods))
-    
-    return HttpResponse(json.dumps(list(uniqueNeighborhoods)), content_type="application/javascript")
-
-def getPhotos(request, location):    
-    if location.endswith('all'):
-        location = location[:len(location)-3]
-        
-    folderContents=os.listdir(os.path.join(settings.STATIC_ROOT + 'photos',location))
-    photos=list(name for name in folderContents if (os.path.isfile(os.path.join(settings.STATIC_ROOT + 'photos', location + "/" + name))) and name.endswith('jpg'))
-    
-    return HttpResponse(json.dumps(len(photos)), content_type="application/javascript")
-
-def getAverageLatLng(happyPlaces):
-    sumLat = 0
-    sumLng = 0
-    latLngs = [happyPlace.latLng for happyPlace in happyPlaces]
-    
-    for latLng in latLngs:        
-        sumLat += latLng['lat']
-        sumLng += latLng['lng']
-    
-    return list([float(sumLat/len(happyPlaces)), float(sumLng/len(happyPlaces))])
-
-def generateId(objects):    
-    generatedId = uuid4().int % 1000000000
-
-    while objects.filter(id=generatedId):
-        generatedId = uuid4().int % 1000000000
-    
-    print('generated id: ' + str(generatedId))
-    return generatedId
+                
+# def SubmitState(request):
+#     if request.method == 'POST':
+#         stateForm = StateForm(request.POST)
+#         
+#         if stateForm.is_valid():
+#             
+#             stateName = stateForm.cleaned_data['state'].name
+#             context = {
+#                        'stateId' : State.objects.all().get(name=stateName).id
+#                        }
+#             
+#             return HttpResponseRedirect(reverse('submitCityForState', kwargs=context))
+#         else:
+#             print('could not validate form: ' + str(stateForm.errors.as_data()))
+#             context = {
+#                'stateForm' : stateForm
+#                }        
+#             
+#         
+#     stateForm = StateForm()
+#     
+#     context = {
+#                'stateForm' : stateForm
+#                }
+#        
+#     return render(request, 'submitStart.html', context)
+# 
+# def SubmitCityForState(request, stateId):
+#     if request.method == 'POST':
+#         cityForm = CityForm(request.POST)
+#         
+#         if cityForm.is_valid():
+#             print ("form validated")
+#             
+#             if cityForm.cleaned_data['city'] == None:
+#                 cityName = cityForm.cleaned_data['name']
+#                 
+#                 if str(cityName) in list(city.name for city in City.objects.all()):
+#                     print('Already have this City!')
+#                     
+#                     cityId = City.objects.all().get(name=cityName).id
+#                     context = {
+#                                'cityId' : cityId
+#                                }   
+#                     return HttpResponseRedirect(reverse('submitHappyPlaceForCity', kwargs=context))
+#                 else:
+#                     idToInsert = generateId(City.objects)
+#                     state=State.objects.all().get(id=stateId)
+#                     city = City(
+#                             id=idToInsert
+#                             ,name=cityName
+#                             ,state=state
+#                             ,timeUpdated=timezone.now()
+#                             )
+#                      
+#                     city.save()
+#                     print("city saved successfully")
+#                 
+#                 context = {
+#                            'cityId' : city.id
+#                            }   
+#                 return HttpResponseRedirect(reverse('submitHappyPlaceForCity', kwargs=context))
+#             
+#             else:
+#                 city = cityForm.cleaned_data['city']
+#                 context = {
+#                            'cityId' : city.id
+#                            }   
+#                 return HttpResponseRedirect(reverse('submitHappyPlaceForCity', kwargs=context))
+#         else:
+#             print('could not validate form: ' + str(cityForm.errors.as_data()))
+#             context = {
+#                        'cityForm' : cityForm
+#                        }        
+#             return render(request, 'submitCity.html', context)
+#     
+#     cityForm = CityForm()
+#     cityForm.fields['city'].queryset = City.objects.filter(state=State.objects.filter(id=stateId)).order_by('name')
+# 
+#     context = {
+#                 'cityForm' : cityForm
+#                 , 'stateId' : stateId
+#                }
+#              
+#     return render(request, 'submitCity.html', context)
+# 
+# def SubmitHappyPlaceForCity(request, cityId):
+#     if request.method == 'POST':
+#         print("received happyPlace form POST")
+#         happyPlaceForm = HappyPlaceForm(request.POST)
+# 
+#         if happyPlaceForm.is_valid():
+#             print ("form validated")
+#             
+#             if happyPlaceForm.cleaned_data['happyPlace'] == None:
+#                 
+#                 placeId = happyPlaceForm.cleaned_data['place_id']
+#                 
+#                 if placeId in list(happyPlace.place_id for happyPlace in HappyPlace.objects.all()):
+#                     print('Already have this HappyPlace!')
+#                     
+#                     happyPlaceId = HappyPlace.objects.all().get(place_id=placeId)
+#                     context = {
+#                                'happyPlaceId' : happyPlaceId
+#                                }   
+#                     return HttpResponseRedirect(reverse('submitHappyHourForHappyPlace', kwargs=context))
+#     
+#                 happyPlace = HappyPlace(
+#                             id=generateId(HappyPlace.objects)
+#                           , name=happyPlaceForm.cleaned_data['name']
+#                           , address=happyPlaceForm.cleaned_data['address']
+#                           , neighborhood=happyPlaceForm.cleaned_data['neighborhood']
+#                           , city=happyPlaceForm.cleaned_data['city']
+#                           
+#                           , cross=None if happyPlaceForm.cleaned_data['cross'] == '' else happyPlaceForm.cleaned_data['cross']
+#                           , site=None if happyPlaceForm.cleaned_data['site'] == '' else happyPlaceForm.cleaned_data['site']
+#                           , phone=None if happyPlaceForm.cleaned_data['phone'] == '' else beautifyPhone(happyPlaceForm.cleaned_data['phone'])
+#                           , latitude=None if happyPlaceForm.cleaned_data['latitude'] == '' else happyPlaceForm.cleaned_data['latitude']
+#                           , longitude=None if happyPlaceForm.cleaned_data['longitude'] == '' else happyPlaceForm.cleaned_data['longitude']
+#                           
+#                           , place_id=happyPlaceForm.cleaned_data['place_id']
+#                         )
+#                 
+#                 if request.POST.get('active'):
+#                     happyPlace.active = True
+#                     
+#                 print("happyPlace created: ")
+#                 print("\tid: "+ str(happyPlace.id))
+#                 print("\tname: "+ str(happyPlace.name))
+#                 print("\taddress: "+ str(happyPlace.address))
+#                 print("\tneighborhood: "+ str(happyPlace.neighborhood))
+#                 print("\tcity: "+ str(happyPlace.city))
+#                 print("\tcross: "+ str(happyPlace.cross))
+#                 print("\tsite: "+ str(happyPlace.site))
+#                 print("\tphone: "+ str(happyPlace.phone))
+#                 print("\tlatitude: "+ str(happyPlace.latitude))
+#                 print("\tlongitude: "+ str(happyPlace.longitude))
+#                 print("\tplaceId: "+ str(happyPlace.place_id))
+#                 
+#                 #happyPlace.save()
+#                 print("happyPlace saved successfully")
+#                 
+#                 context = {
+#                            'happyPlaceId' : happyPlace.id
+#                            }
+#                 
+#                 return HttpResponseRedirect(reverse('submitHappyHourForHappyPlace', kwargs=context))   
+#         
+#         else:
+#             print('could not validate form: ' + str(happyPlaceForm.errors.as_data()))
+#             context = {
+#                'happyPlaceForm' : happyPlaceForm
+#                , 'happyHourForm' : HappyHourForm()
+#                }        
+#             return render(request, 'submitHappyPlace.html', context)
+#      
+#     happyPlaceForm = HappyPlaceForm()
+#     happyPlaceForm.fields['happyPlace'].queryset = HappyPlace.objects.filter(city=City.objects.filter(id=cityId)).order_by('name')
+#         
+#     context = {
+#                'cityId' : cityId
+#                 , 'happyPlaceForm' : happyPlaceForm
+#                 }
+#     return render(request, 'submitHappyPlace.html', context)
+#         
+# def SubmitHappyHourForHappyPlace(request, happyPlaceId):
+#     if request.method == 'POST':
+#         print("received happyHour form POST")
+#         form = HappyHourForm(request.POST)
+#             
+#         if form.is_valid():            
+#             print ("form validated")            
+#             idToInsert = generateId(HappyHour.objects)
+#             
+#             happyHour = HappyHour(
+#                     id=idToInsert
+#                     ,notes=form.cleaned_data['notes']
+#                     ,days=form.cleaned_data['days']
+#                     ,start=form.cleaned_data['start']
+#                     ,end=form.cleaned_data['end']
+#                     ,happyPlace=form.cleaned_data['happyPlace']
+#                     ,beer=form.cleaned_data['beer']
+#                     ,wine_glass=form.cleaned_data['wine_glass']
+#                     ,wine_bottle=form.cleaned_data['wine_bottle']
+#                     ,shot_beer=form.cleaned_data['shot_beer']
+#                     ,well=form.cleaned_data['well']
+#                     ,display_notes=form.cleaned_data['display_notes']
+#                     )
+#             
+#             print("happyHour created: ")
+#             print("\tid: "+ str(happyHour.id))
+#             print("\tnotes: "+ str(happyHour.notes))
+#             print("\tdays: "+ str(happyHour.days))
+#             print("\tstart: "+ str(happyHour.start))
+#             print("\tend: "+ str(happyHour.end))
+#             print("\thappyPlace: "+ str(happyHour.happyPlace.name))
+#             
+#             happyHour.save()
+#             print("happyHour saved")
+#             
+#             return HttpResponseRedirect('/submit')
+#         
+#         else:
+#             print('could not validate form: ' + str(form.errors.as_data()))
+#             context = {
+#                'happyPlaceForm' : HappyPlaceForm()
+#                , 'happyHourForm' : form
+#                }        
+#             return render(request, 'submit.html', context)
+#     
+#     happyHourForm = HappyHourForm()
+#     
+#     context = {
+#                'happyHourForm' : happyHourForm
+#                 }
+#     return render(request, 'submitHappyHour.html', context)
+#         

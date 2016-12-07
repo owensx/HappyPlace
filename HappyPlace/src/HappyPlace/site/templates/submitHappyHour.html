@@ -1,0 +1,51 @@
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+	$(document).ready(function(){
+       	 $("input#fromOpen").change(function(){
+       	 	if($(this).prop('checked')){       	 		
+       	 		$("input#id_start").attr('disabled', true);
+       	 	} else {
+       	 		$("input#id_start").val("");
+       	 		
+       	 		$("input#id_start").attr('disabled', false);
+       	 	}
+       	 });
+       	 $("input#toClose").change(function(){
+       	 	if($(this).prop('checked')){       	 		
+       	 		$("input#id_end").attr('disabled', true);
+       	 	} else {
+       	 		$("input#id_end").val("");
+       	 		
+       	 		$("input#id_end").attr('disabled', false);
+       	 	}
+       	 });
+    });
+     
+    
+  	
+</script>
+
+
+
+<b><i>Happy Hour Form</i></b>
+
+<form id="happyHourForm" enctype="multipart/form-data" action="/submit/" method="post">
+  	{% csrf_token %}
+  	<br/>
+  	Editing {{ happyPlace }}
+  	<br/>
+	<br/>
+    <label for="fromOpen"><input id="fromOpen" name="fromOpen" type="checkbox"> From Open </label>
+    <label for="toClose"><input id="toClose" name="toClose" type="checkbox"> To Close </label>
+    {{ happyHourForm.as_p }}
+    
+    <button for="daily" id="daily" name="daily" type="button" onCLick="dailyClick('daily')"> Daily </button>
+    <button for="weekdays" id="weekdays" name="weekdays" type="button" onCLick="dailyClick('weekdays')"> Weekdays </button>
+    <button for="weekends" id="weekends" name="weekends" type="button" onCLick="dailyClick('weekends')"> Weekends </button>
+    </br>
+    </br>
+    <input onClick="onHappyHourSubmit()" type="submit" value="Submit">
+</form>

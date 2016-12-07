@@ -59,11 +59,10 @@ WSGI_APPLICATION = 'HappyPlace.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'happyplace',
-        'USER': 'root',
+        'NAME': 'owensx$happyplace',
+        'USER': 'owensx',
         'PASSWORD': 'mct4)Fsh',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'HOST': 'owensx.mysql.pythonanywhere-services.com',
     }
 }
 
@@ -85,4 +84,4 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.7/howto/static-files/
 
 STATIC_URL = '/static/'
-STATIC_ROOT = '/home/owensx/HappyPlace/HappyPlace/src/HappyPlace/site/static/'
+STATIC_ROOT = '/home/owensx/HappyPlace/src/HappyPlace/site/static/'

@@ -1,0 +1,135 @@
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js" type="text/javascript"></script>
+<script type="text/javascript">
+
+	$(document).ready(function(){
+       	 $("input#fromOpen").change(function(){
+       	 	if($(this).prop('checked')){       	 		
+       	 		$("input#id_start").attr('disabled', true);
+       	 	} else {
+       	 		$("input#id_start").val("");
+       	 		
+       	 		$("input#id_start").attr('disabled', false);
+       	 	}
+       	 });
+       	 $("input#toClose").change(function(){
+       	 	if($(this).prop('checked')){       	 		
+       	 		$("input#id_end").attr('disabled', true);
+       	 	} else {
+       	 		$("input#id_end").val("");
+       	 		
+       	 		$("input#id_end").attr('disabled', false);
+       	 	}
+       	 });
+    });
+     
+    function dailyClick(buttonName){
+
+    	$("#id_days_0").prop('checked', false);
+	    $("#id_days_1").prop('checked', false);
+	    $("#id_days_2").prop('checked', false);
+	    $("#id_days_3").prop('checked', false);
+	    $("#id_days_4").prop('checked', false);
+	    $("#id_days_5").prop('checked', false);
+	    $("#id_days_6").prop('checked', false);
+      
+    	switch (buttonName){
+    		case 'daily':
+	    		$("#id_days_0").prop('checked', true);
+	    		$("#id_days_1").prop('checked', true);
+	    		$("#id_days_2").prop('checked', true);
+	    		$("#id_days_3").prop('checked', true);
+	    		$("#id_days_4").prop('checked', true);
+	    		$("#id_days_5").prop('checked', true);
+	    		$("#id_days_6").prop('checked', true);
+	    		break;
+	    		
+	    	case 'weekdays':
+	    		$("#id_days_1").prop('checked', true);
+	    		$("#id_days_2").prop('checked', true);
+	    		$("#id_days_3").prop('checked', true);
+	    		$("#id_days_4").prop('checked', true);
+	    		$("#id_days_5").prop('checked', true);
+	    		break;
+	    		
+	    	case 'weekends':
+	    		$("#id_days_0").prop('checked', true);
+	    		$("#id_days_6").prop('checked', true);
+	    		break;
+    	}
+    }	
+        
+    function onHappyHourSubmit(){
+		$("input#id_start").attr('disabled', false);
+		$("input#id_end").attr('disabled', false);  
+       	
+		if($("input#fromOpen").prop('checked')){
+   	 		$("input#id_start").val("00:00:01");
+   		}
+   		if($("input#toClose").prop('checked')){
+   			$("input#id_end").val("02:01:00");
+  		}
+  	}
+  	
+  	function inflate(){
+		queryString = $("#happyPlaceForm input#id_name").val() + ' ' + $("#happyPlaceForm select#id_city").find(":selected").text() + ' ' + $("#happyPlaceForm input#id_address").val();
+		
+		$.getJSON("/getPlaceId/" + queryString, function(data) {
+  			$("#happyPlaceForm input#id_name").val(data.name);
+  			$("#happyPlaceForm input#id_address").val(data.address);
+  			$("#happyPlaceForm input#id_latitude").val(data.latitude);
+  			$("#happyPlaceForm input#id_longitude").val(data.longitude);
+  			$("#happyPlaceForm input#id_site").val(data.site);
+  			$("#happyPlaceForm input#id_phone").val(data.phone);
+		});
+  	}
+  	
+  	function clearForm(formId){
+  		$(formId).find("input[type=text], textarea").not("#id_name").val("");
+  	}
+
+</script>
+
+
+
+Submit photos here: <br>
+
+Photos should have ALL of the following: <br>
+Name of HappyPlace <br>
+Days happy hour occurs <br>
+Times happy hour occurs <br> 
+The special (the more detailed the better) <br>
+
+<b><i>City Form</i></b>
+
+<form id="cityForm" enctype="multipart/form-data" action="/submitCity/" method="post">
+	{% csrf_token %}
+  	
+    {{ cityForm.as_p }}
+    
+    <input type="submit" value="Submit">
+</form>
+
+
+<b><i>Happy Hour Form</i></b>
+
+<form id="happyHourForm" enctype="multipart/form-data" action="/submitHappyHour/" method="post">
+  	{% csrf_token %}
+  	
+    <label for="fromOpen"><input id="fromOpen" name="fromOpen" type="checkbox"> From Open </label>
+    <label for="toClose"><input id="toClose" name="toClose" type="checkbox"> To Close </label>
+    {{ happyHourForm.as_p }}
+    
+    <button for="daily" id="daily" name="daily" type="button" onCLick="dailyClick('daily')"> Daily </button>
+    <button for="weekdays" id="weekdays" name="weekdays" type="button" onCLick="dailyClick('weekdays')"> Weekdays </button>
+    <button for="weekends" id="weekends" name="weekends" type="button" onCLick="dailyClick('weekends')"> Weekends </button>
+    </br>
+    </br>
+    <input onClick="onHappyHourSubmit()" type="submit" value="Submit">
+</form>
+
+
+{#<div id="dialog-message" title="Basic dialog">#}
+{#  <p>This is the default dialog which is useful for displaying information. The dialog window can be moved, resized and closed with the 'x' icon.</p>#}
+{#</div>#}

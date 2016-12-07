@@ -1,0 +1,13 @@
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+  
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js" type="text/javascript"></script>
+
+Choose a state below to get started!
+
+<form id="stateForm" enctype="multipart/form-data" action="/submitState/" method="post">
+  	{% csrf_token %}
+  	
+    {{ stateForm.as_p }}
+
+    <input type="submit" value="Submit">
+</form>

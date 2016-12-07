@@ -7,7 +7,7 @@
 	<link rel="stylesheet" href="{% static 'main.css' %}" type="text/css">
 	
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js" type="text/javascript"></script>
-	<script src='https://maps.googleapis.com/maps/api/js?v=3.exp'></script>
+	<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDj5RUzdluGjmLNjSVXASlDyvK_LIZ4Qq8&libraries=places" type="text/javascript"></script>
 	
 	<script src="{{ STATIC_URL}}js/tableDrop.js" type="text/javascript"></script>
 	<script src="{{ STATIC_URL}}js/mobileCheck.js" type="text/javascript"></script>
@@ -15,12 +15,13 @@
 	
 	<script type="text/javascript">
 		$(document).ready(function(){
+		
 	        var lastSelectedCity = '{{ lastSelectedCity }}';
 	        var lastSelectedNeighborhood = '{{ lastSelectedNeighborhood }}';
 	        var mapCenter = {{ mapCenter }};
 	        var staticUrl = ".{{ STATIC_URL }}";
 	        
-	        {%with markersInfo=happyPlaces|getMarkerInfo %}
+	        {% with markersInfo=happyPlaces|getMarkerInfo %}
 	        var markersInfo = {{ markersInfo|safe }};
 	        {% endwith %}
 			
@@ -32,34 +33,38 @@
 			tableDrop();
 	        
 
-			//$("#tableContainer").css('display', '{{ tableDisplay }}');
-			//$("#tableDisplay").val('{{ tableDisplay }}');
-			//$("#map").css('display', '{{ mapDisplay }}');
-			//$("#mapDisplay").val('{{ mapDisplay }}');
+			$("#tableContainer").css('display', '{{ tableDisplay }}');
+			$("#tableDisplay").val('{{ tableDisplay }}');
+			$("#map").css('display', '{{ mapDisplay }}');
+			$("#mapDisplay").val('{{ mapDisplay }}');
 		});
 	    
 	    function flipMobileFlag(){
 			document.getElementById('mobileFlag').value = !(document.getElementById('mobileFlag').value) || {{ mobileOverride }};
 	    }
 	    
-	    function flipDisplay(){
+	    function flipDisplay(mapCenter){
 	    	if (document.getElementById('map').style.display == 'none'){
 			 	$("#map").css('display', 'initial');
-			 	//$("#mapDisplay").val('initial');
+			 	$("#mapDisplay").val('initial');
 			 	
 			 	$("#tableContainer").css('display', 'none');
-			 	//$("#tableDisplay").val('none');
+			 	$("#tableDisplay").val('none');
+			 	
+				google.maps.event.trigger(gmap, 'resize');
+				gmap.setCenter({lat: mapCenter[0], lng: mapCenter[1]});
 	    	} else {
 			 	$("#map").css('display', 'none');
-			 	//$("#mapDisplay").val('none');
+			 	$("#mapDisplay").val('none');
 			 	
 			 	$("#tableContainer").css('display', 'initial');
-			 	//$("#tableDisplay").val('initial');
+			 	$("#tableDisplay").val('initial');
+			 	
+				google.maps.event.trigger(gmap, 'resize');
+				gmap.setCenter({lat: mapCenter[0], lng: mapCenter[1]});
 	    	}
 	    }
 	</script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDj5RUzdluGjmLNjSVXASlDyvK_LIZ4Qq8&libraries=places">
-    </script>
 </head>
 
 <body id="body">
@@ -84,14 +89,15 @@
 		{% if mobileOverride == "true" %} 
 			<input id="flipView" type="submit" value="Mobile/Desktop" onClick="flipMobileFlag()">
 		{% endif %}
+		
 		<p style = "text-shadow: -1px 0 1px black; font-weight: bold; font-size: 18px;"> <input id="currentTimeOnly" name="currentTimeOnly" type ="checkbox"> Right Now! </p>
-		<input type="button" onCLick="flipDisplay()" value="Map/List View"/>
+		<input type="button" onCLick="flipDisplay({{ mapCenter }})" value="Map/List View"/>
 	</div>
 		
 	<input type="hidden" id="mobileFlag" name="mobileFlag" value=""/>
 	<input type="hidden" id="mobileOverride" name="mobileOverride" value="false"/>
-	<!--<input type="hidden" id="tableDisplay" name="tableDisplay" value="none"/>
-	<input type="hidden" id="mapDisplay" name="mapDisplay" value="initial"/>-->
+	<input type="hidden" id="tableDisplay" name="tableDisplay" value="none"/>
+	<input type="hidden" id="mapDisplay" name="mapDisplay" value="initial"/>
 </form>
 
 <div id="map"></div>

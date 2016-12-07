@@ -24,9 +24,9 @@
         #report tr.odd td { background:#aaa  repeat-x scroll center left; cursor:pointer;  }
        */
 #map {
-		margin-left: 10%;
-		margin-right: 10%;
-        height: 80%;
+		margin:10%;
+		margin-top: 1%;
+        height: 75%;
         width: 80%;
         position: absolute;
        }
@@ -100,6 +100,7 @@ table {
 	border:#ccc 1px solid;
 	border-collapse:collapse;
 	margin:10%;
+	margin-top: 1%;
 	width:80%;
 	opacity: 0.89;
 	
