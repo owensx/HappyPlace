@@ -19,6 +19,10 @@ urlpatterns =  patterns('',
 #     url(r'^submitHappyHourForHappyPlace/(?P<happyPlaceId>[0-9]*)/$', 'HappyPlace.site.views.SubmitHappyHourForHappyPlace', name='submitHappyHourForHappyPlace'),
     url(r'^error/', 'HappyPlace.site.views.Error', name='error'),
     url(r'^getNeighborhoods/(?P<cityToSearch>\w+)', 'HappyPlace.site.utils.getNeighborhoodsForCity', name='getNeighborhoodsForCity'),
+    url(r'^getHappyPlaces/(?P<neighborhoodToSearch>\w+)', 'HappyPlace.site.utils.getHappyPlacesForNeighborhood', name='getHappyPlacesForNeighborhood'),
+    
+    url(r'^getHappyPlace/(?P<happyPlaceId>\w+)', 'HappyPlace.site.utils.getHappyPlace', name='getHappyPlace'),
+    
     url(r'^getPhotos/(?P<location>.+\/.+)', 'HappyPlace.site.utils.getPhotos', name = 'getPhotos'),
     url(r'^getPlaceId/(?P<queryString>.+)', 'HappyPlace.site.utils.getPlaceId', name = 'getPlaceId'),
     url(r'^', 'HappyPlace.site.views.Home', name='home'),    

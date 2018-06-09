@@ -2,11 +2,10 @@ import os
 import sys
 from uuid import uuid4
 from django.http.response import HttpResponseBadRequest, HttpResponse
+from django.core.serializers import serialize
 from HappyPlace.site.models import *
 from HappyPlace import settings
-
 from googleplaces import GooglePlaces
-from django.utils import timezone
 
 
 GOOGLE_API_KEY = 'AIzaSyDj5RUzdluGjmLNjSVXASlDyvK_LIZ4Qq8'
@@ -60,14 +59,27 @@ def getPlaceId(request, queryString):
 def getNeighborhoodsForCity(request, cityToSearch):
     #reconstruct spaces in search parameter
     cityToSearch = cityToSearch.replace('_', ' ')
-    city = City.objects.get(name=cityToSearch)
-    happyPlacesInCity = city.happyPlaces.all().filter(active=1)
     
-    allNeighborhoods = (happyPlace.neighborhood for happyPlace in happyPlacesInCity)
-    uniqueNeighborhoods = sorted(set(allNeighborhoods))
+    neighborhoods = City.objects.all().get(name=cityToSearch).neighborhoods.all()
     
-    return HttpResponse(json.dumps(list(uniqueNeighborhoods)), content_type="application/javascript")
+    return HttpResponse(json.dumps(list(map(lambda neighborhood: neighborhood.name, neighborhoods))), content_type="application/javascript")
 
+    
+def getHappyPlacesForNeighborhood(request, neighborhoodToSearch):
+    neighborhoodToSearch = neighborhoodToSearch.replace('_', ' ')
+    
+    happyPlaces = Neighborhood.objects.get(name=neighborhoodToSearch).happyPlaces.all()
+    return HttpResponse(serialize('json', happyPlaces), content_type="application/javascript")
+
+def getHappyPlace(request, happyPlaceId):
+    happyPlace = HappyPlace.objects.get(id=happyPlaceId)
+    
+    
+
+   
+    return HttpResponse(happyPlace.render_to_response(), content_type="application/javascript")
+
+       
 def getPhotos(request, location):    
     if location.endswith('all'):
         location = location[:len(location)-3]
@@ -91,7 +103,7 @@ def inflate():
         happyPlace.address = googleDetails['formatted_address'].split(',')[0]
         happyPlace.name = googleDetails['name']
         happyPlace.place_id = googleDetails['place_id']
-        happyPlace.timeUpdated = timezone.now()
+        happyPlace.timeUpdated = datetime.utcnow()
          
         try:
             happyPlace.price_level = googleDetails['price_level']
@@ -143,7 +155,7 @@ def saveNewCity(formData, state):
             id=generateId(City.objects)
             , name=cityName
             , state=state
-            , timeUpdated=timezone.now()
+            , timeUpdated=datetime.utcnow()
             )
      
     city.save()
@@ -156,12 +168,26 @@ def saveNewHappyPlace(formData, city):
         print('place_id ' + place_id + ' already in DB (' + HappyPlace.objects.get(place_id=place_id).name + ')')
         return HappyPlace.objects.get(place_id=place_id)
     
+    def getOrSaveNeighborhood(neighborhoodName):
+        print(neighborhoodName)
+        if neighborhoodName:
+            neighborhood = Neighborhood(
+                                        id=generateId(Neighborhood.objects)
+                                        , name=neighborhoodName
+                                        , city=city
+                                        , timeUpdated=datetime.utcnow()
+                                        )
+            neighborhood.save()
+            return neighborhood
+        
+        else:
+            return formData['neighborhood']
+        
     happyPlace = HappyPlace(
                             id=generateId(HappyPlace.objects)
                           , name=formData['name']
                           , address=formData['address']
-                          , neighborhood=formData['neighborhood']
-                          , city=formData['city']
+                          , neighborhood=getOrSaveNeighborhood(formData['neighborhoodName'])
                           
                           , cross=None if formData['cross'] == '' else formData['cross']
                           , site=None if formData['site'] == '' else formData['site']
@@ -171,7 +197,7 @@ def saveNewHappyPlace(formData, city):
                           
                           , place_id=formData['place_id']
                           
-                          , timeUpdated=timezone.now()
+                          , timeUpdated=datetime.utcnow()
                           , active=False
                         )
     
@@ -187,7 +213,7 @@ def saveNewHappyHour(formData, happyPlace):
                     ,end=formData['end']
                     ,happyPlace=happyPlace
                     
-                    , timeUpdated=timezone.now()
+                    , timeUpdated=datetime.utcnow()
                     )
     
     happyHour.save()
@@ -209,17 +235,19 @@ def saveNewFullHappyHour(formData, happyPlace):
                     ,well=formData['well']
                     ,display_notes=formData['display_notes']
                     
-                    , timeUpdated=timezone.now()
+                    , timeUpdated=datetime.utcnow()
                     )
     
     happyHour.save()
     
     return happyHour
 
+    
 def initCityFormView(cityForm, state, context):
     cityForm.fields['city'].queryset = City.objects.filter(state=state).order_by('name')
                 
     context['stateId'] = state.id
+    
     context['cityForm'] = cityForm
     
     context['displayStateSumbit'] = 'none'
@@ -227,7 +255,10 @@ def initCityFormView(cityForm, state, context):
     context['displayHappyPlaceSumbit'] = 'none'
     context['displayHappyHourSumbit'] = 'none'
     
-def initHappyPlaceFormView(happyPlaceForm, city, context):                    
+def initHappyPlaceFormView(happyPlaceForm, city, context):
+    happyPlaceForm.fields['neighborhood'].queryset = Neighborhood.objects.filter(city=city).order_by('name')
+    
+    context['city'] = city            
     context['cityId'] = city.id
     
     context['happyPlaceForm'] = happyPlaceForm

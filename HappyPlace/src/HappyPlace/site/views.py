@@ -39,8 +39,10 @@ def Submit(request):
                 initCityFormView(cityForm, state, context)
                 
         elif formType == 'cityForm':
+            stateId = request.POST.get('stateId')
+            
             cityForm = CityForm(request.POST)
-            state = State.objects.get(id=request.POST.get('stateId'))
+            state = State.objects.get(id=stateId)
             
             if cityForm.is_valid():
                 formData = cityForm.cleaned_data
@@ -50,19 +52,21 @@ def Submit(request):
                 else:
                     city = formData['city']
                 
-                happyPlaceForm = HappyPlaceForm(initial={'city': city})
+                happyPlaceForm = HappyPlaceForm()
                 initHappyPlaceFormView(happyPlaceForm, city, context)
              
             else:
                 initCityFormView(cityForm, state, context)
                    
         elif formType == 'happyPlaceForm':
+            cityId = request.POST.get('cityId')
+            
             happyPlaceForm = HappyPlaceForm(request.POST)
-            city = City.objects.get(id=request.POST.get('cityId'))
+            city = City.objects.get(id=cityId)
             
             if happyPlaceForm.is_valid():
                 formData = happyPlaceForm.cleaned_data
-                
+                    
                 happyPlace = saveNewHappyPlace(formData, city)                
                     
                 happyHourForm = HappyHourForm()                
@@ -95,7 +99,7 @@ def Home(request):
     rightNowFlag = 'true' if request.POST.get('currentTimeOnly') is not None else 'false'
     
     allActiveHappyPlaces = HappyPlace.objects.filter(active=True).exclude(latitude__isnull=True)
-    allCities = sorted(set(happyPlace.city.name for happyPlace in allActiveHappyPlaces))
+    allCities = sorted(set(happyPlace.neighborhood.city.name for happyPlace in allActiveHappyPlaces))
     
     if request.method == 'GET':
         context = {
@@ -110,18 +114,19 @@ def Home(request):
             happyPlaces = allActiveHappyPlaces           
         elif request.POST.get('neighborhood') == 'all' or request.POST.get('neighborhood') == None:
             print('no neighborhood selected, returning all happyPlaces in ' + request.POST.get('city'))
-            happyPlaces = allActiveHappyPlaces.filter(city=City.objects.get(name=request.POST.get('city')))
+            happyPlaces = list(filter(lambda happyPlace: happyPlace.neighborhood in list(City.objects.get(name=request.POST.get('city')).neighborhoods.all()), allActiveHappyPlaces))
         else:
             print('returning all happyPlaces in ' + request.POST.get('neighborhood') + ', ' + request.POST.get('city'))
-            happyPlaces = allActiveHappyPlaces.filter(neighborhood=request.POST.get('neighborhood'))
+            happyPlaces = list(filter(lambda happyPlace: happyPlace.neighborhood.name == request.POST.get('neighborhood'), allActiveHappyPlaces))
     else:
         happyPlaces = allActiveHappyPlaces
 
-    if request.POST.get('currentTimeOnly') and not request.POST.get('city') == 'defaultCity':
+    if request.POST.get('currentTimeOnly') and not request.POST.get('city') == 'defaultCity' and happyPlaces:
         print('only returning happyHours happening now')
         happyHours = [happyHour for happyPlace in happyPlaces for happyHour in happyPlace.happyHours.all()]
         
-        currentLocalDatetime = datetime.utcnow() + timedelta(hours=happyHours[0].happyPlace.city.state.offset)
+        currentLocalDatetime = datetime.utcnow()
+        print(currentLocalDatetime)
         currentLocalDate = currentLocalDatetime.date()
         currentWeekdayInt = currentLocalDatetime.weekday()
         
@@ -166,7 +171,7 @@ def Home(request):
         happyPlaces = list(set(happyHour.happyPlace for happyHour in allHappyHours))
     
     
-    happyPlaces = sorted(happyPlaces,key=lambda happyPlace:happyPlace.neighborhood);
+    happyPlaces = sorted(happyPlaces,key=lambda happyPlace: happyPlace.neighborhood.name);
 
     if len(happyPlaces) == 0:
         return HttpResponseRedirect('/error/')
@@ -175,7 +180,7 @@ def Home(request):
                'happyPlaces' : happyPlaces
                , 'mapCenter' : json.dumps(getAverageLatLng(happyPlaces))
                , 'dayPairs' : DAYS
-               , 'today' : intToDayOfWeek((datetime.utcnow() + timedelta(hours=happyPlaces[0].city.state.offset)).weekday())
+               , 'today' : intToDayOfWeek((datetime.utcnow() + timedelta(hours=happyPlaces[0].neighborhood.city.state.offset)).weekday())
                , 'cities' : allCities
                , 'lastSelectedCity' : request.POST.get('city') if request.POST.get('city') is not None else 'defaultCity'
                , 'lastSelectedNeighborhood' : request.POST.get('neighborhood') if request.POST.get('neighborhood') is not None else 'all'

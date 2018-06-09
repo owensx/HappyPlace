@@ -14,7 +14,18 @@
 	<script type="text/javascript">	
 		$(document).ready(function(){
 			init();		
-			hideHappyPlaceFormInputFields();					
+			hideHappyPlaceFormInputFields();	
+			
+				
+			$("#happyPlaceForm select#id_neighborhood").change(function(){
+				if ($(this).prop("selectedIndex") == 0){
+					$('#happyPlaceForm input#id_neighborhoodName').show();
+					$("#happyPlaceForm label[for='id_neighborhoodName']").show();
+				} else {
+					$('#happyPlaceForm input#id_neighborhoodName').hide();
+					$("#happyPlaceForm label[for='id_neighborhoodName']").hide();
+				}
+			});				
 		});
 	</script>
 </head>
@@ -61,11 +72,7 @@
 		
 		<div id="happyPlaceSubmit" style="display: {{ displayHappyPlaceSumbit }};">
 			<br/>
-			<br/>
 			Search your HappyPlace below! 
-			<br/>
-			<br/>
-			<br/>
 			<br/>
 			<form id="happyPlaceForm" enctype="multipart/form-data" onSubmit="onHappyPlaceFormSumbit()" action="/submit/" method="post">
 			  	{% csrf_token %}
@@ -80,6 +87,7 @@
 			    
 				<input type="hidden" name="formType" value="happyPlaceForm">
 				<input type="hidden" name="cityId" value="{{ cityId }}">
+				<input type="hidden" id="cityName" name="cityName" value="{{ cityId }}">
 			</form>
 		</div>
 		

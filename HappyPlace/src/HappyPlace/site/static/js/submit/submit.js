@@ -8,12 +8,13 @@ function init(){
 		$(this).height((windowHeight / 2) - getMarginHeight());
 	});
 	
-	$("#cityForm input#id_name").change(function(){
-		if ($(this).val().length > 0){
-			$("#cityForm select#id_city").prop("selectedIndex", 0);
-			$("#cityForm select#id_city").prop('disabled', true);
+	$("#cityForm select#id_city").change(function(){
+		if ($(this).prop("selectedIndex") == 0){
+			$("#cityForm input#id_name").show();
+			$("#cityForm label[for='id_name']").show();
 		} else {
-			$("#cityForm select#id_city").prop('disabled', false);
+			$("#cityForm input#id_name").hide();
+			$("#cityForm label[for='id_name']").hide();
 		}
 	});
 	
@@ -72,6 +73,13 @@ function hideHappyPlaceFormInputFields(){
 	$('#happyPlaceForm input#id_name').show();
 	$("#happyPlaceForm label[for='id_name']").show();
 	
+	$('#happyPlaceForm input#id_neighborhood').show();
+	$("#happyPlaceForm label[for='id_neighborhood']").show();
+	
+	$('#happyPlaceForm input#id_neighborhoodName').show();
+	$("#happyPlaceForm label[for='id_neighborhoodName']").show();
+
+	
 	$("#happyPlaceForm button").not('#searchButton').hide();
 }
 
@@ -113,6 +121,7 @@ function clearHappyHourDays(){
 	$("#happyHourForm #id_days_5").prop('checked', false);
 	$("#happyHourForm #id_days_6").prop('checked', false);
 }
+
 function onHappyHourSubmit(){
 	$("input#id_start").attr('disabled', false);
 	$("input#id_end").attr('disabled', false);  
@@ -127,8 +136,7 @@ function onHappyHourSubmit(){
 }
 
 function onSearchButtonClick(){
-	$("#happyPlaceForm input#id_address").val("");
-	queryString = $("#happyPlaceForm input#id_name").val() + ' ' + $("#happyPlaceForm select#id_city").find(":selected").text() + ' ' + $("#happyPlaceForm input#id_address").val();
+	queryString = $("#happyPlaceForm input#id_name").val() + ' ' + $("#happyPlaceForm input#cityName") + ' ' + $("#happyPlaceForm input#id_address").val();
 
 	$.getJSON("/getPlaceId/" + queryString, function(data) {
 		googlePlaces = data;

@@ -83,6 +83,11 @@ function initMap(mapCenter, markersInfo) {
 }
 
 
+function isInfoWindowOpen(infoWindow){
+    var map = infoWindow.getMap();
+    return (map !== null && typeof map !== "undefined");
+}
+
 function addMarkerToMap(geocoder, map, happyPlaceInfo){
 	happyPlaceName = happyPlaceInfo[0];
 	latLng = happyPlaceInfo[1];
@@ -98,11 +103,14 @@ function addMarkerToMap(geocoder, map, happyPlaceInfo){
 	    content: getInfoWindowHtml(happyPlaceName, specials)
 	});
 	
-	marker.addListener('mouseover', function() {
-		infoWindow.open(map, marker);
-	});
-	marker.addListener('mouseout', function() {
-		infoWindow.close();
+	marker.addListener('click', function() {
+		
+		if (isInfoWindowOpen(infoWindow)) {
+			infoWindow.close();
+		}
+		else {
+			infoWindow.open(map, marker);
+		}
 	});
 	
 //	if (jQuery.browser.mobile){

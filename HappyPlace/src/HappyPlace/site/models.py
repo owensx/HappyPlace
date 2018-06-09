@@ -3,6 +3,10 @@ from django.forms import ModelForm
 from django import forms
 from datetime import datetime, time, timedelta
 from HappyPlace.site.templatetags.filters import *
+from django.forms.models import model_to_dict
+from django.core import serializers
+from django.http.response import HttpResponseBadRequest, HttpResponse
+
 import json
 
 DAYS = (('S','Sunday')
@@ -22,6 +26,7 @@ class State(models.Model):
     id = models.IntegerField(primary_key=True)
     timeUpdated = models.DateTimeField()
     
+#required fields    
     name = models.CharField(max_length=50)
     offset = models.IntegerField(choices=ZONES)
     
@@ -35,26 +40,45 @@ class City(models.Model):
     id = models.IntegerField(primary_key=True)
     timeUpdated = models.DateTimeField()
     
-    name = models.CharField(max_length=50)
+#foreign keys
+    state = models.ForeignKey(State, related_name='cities')
     
-    state = models.ForeignKey(State, related_name='state')
+#required fields    
+    name = models.CharField(max_length=50)
         
     def __str__(self):
         return self.name.__str__()
     
     class Meta:
         ordering = ('name',)
-        
+
+class Neighborhood(models.Model):
+    id = models.IntegerField(primary_key=True)
+    timeUpdated = models.DateTimeField()
+    
+#foreign keys
+    city = models.ForeignKey(City, related_name='neighborhoods')
+
+#required fields
+    name = models.CharField(max_length=50)
+    
+    def __str__(self):
+        return self.name.__str__()
+    
+    class Meta:
+        ordering = ('name',)
+                
 class HappyPlace(models.Model):
     place_id = models.CharField(max_length=50, primary_key=True)
     id = models.IntegerField(unique=True)
     timeUpdated = models.DateTimeField()
 
+#foreign keys
+    neighborhood = models.ForeignKey(Neighborhood, related_name='happyPlaces')
+    
 #required fields
     name = models.CharField(max_length=50)
     address = models.CharField(max_length=75)
-    neighborhood = models.CharField(max_length=50)
-    city = models.ForeignKey(City, related_name='happyPlaces')
     
 #optional fields
     cross = models.CharField(max_length=50, null=True)
@@ -86,7 +110,7 @@ class HappyPlace(models.Model):
     markerInfo = property(getMarkerInfo)
     
     def getTodaysSpecials(self):
-        today = intToDayOfWeek((datetime.utcnow() + timedelta(hours=self.city.state.offset)).weekday())
+        today = intToDayOfWeek((datetime.utcnow() + timedelta(hours=self.neighborhood.city.state.offset)).weekday())
         happyHours = filter(lambda happyHour: today in happyHour.days, self.happyHours.all())
           
         specials = []
@@ -107,12 +131,22 @@ class HappyPlace(models.Model):
     
     todaysSpecials = property(getTodaysSpecials)
     
+    
+    def render_to_response(self):
+
+        data = serializers.serialize('json', self.get_queryset())
+        return HttpResponse(data, content_type="application/json")
+    
     def __str__(self):
         return self.name.__str__()
 
+        
 class HappyHour(models.Model):
     id = models.IntegerField(primary_key=True)
     timeUpdated = models.DateTimeField()
+    
+#foreign keys
+    happyPlace = models.ForeignKey(HappyPlace, to_field='id', related_name='happyHours')
     
     notes = models.CharField(max_length=200)
     days = models.CharField(max_length=100,choices=DAYS)
@@ -125,9 +159,10 @@ class HappyHour(models.Model):
     shot_beer = models.CharField(max_length=200, null=True)
     display_notes = models.CharField(max_length=200, null=True)
     
-    happyPlace = models.ForeignKey(HappyPlace, to_field='id', related_name='happyHours')
 
-
+class Report(models.Model):
+    reportName = models.CharField(max_length=200)
+    lastRun =  models.DateTimeField()
 
 class StateForm(ModelForm):
     state = forms.ModelChoiceField(queryset=State.objects.all().order_by('name'))
@@ -137,7 +172,7 @@ class StateForm(ModelForm):
         fields = ['state']   
     
 class CityForm(ModelForm):    
-    city = forms.ModelChoiceField(queryset=City.objects.all().order_by('name'), required=False)
+    city = forms.ModelChoiceField(queryset=City.objects.all().order_by('name'), empty_label='Add New City', required=False)
     
     name = forms.CharField(max_length=200,required=False)
     
@@ -154,12 +189,22 @@ class CityForm(ModelForm):
         model = City
         fields = ['city', 'name']
         
-class HappyPlaceForm(ModelForm):      
+class HappyPlaceForm(ModelForm):    
+#     def __init__(self, *args, **kwargs):
+#         neighborhood = Neighborhood.objects.filter(city=City.objects.get(id=kwargs.pop('cityId')))
+#         super(HappyPlaceForm, self).__init__(*args, **kwargs)
+#         self.fields['neighborhood'] = forms.ChoiceField(
+#                 choices=[(happyPlace, happyPlace) for happyPlace in HappyPlace.objects.filter(neighborhood=neighborhood)]
+#                 )
+          
     place_id = forms.CharField(max_length=200,required=False, error_messages={'unique': "We already have that HappyPlace!"})
     
-    name = forms.CharField(max_length=200,required=False)
+    name = forms.CharField(max_length=200,required=True)
+    
+    neighborhood = forms.ModelChoiceField(queryset=Neighborhood.objects.all().order_by('name'), empty_label='Add New Neighborhood', required=False)
+    neighborhoodName = forms.CharField(max_length=200,required=False)
+    
     address = forms.CharField(max_length=200,required=False)
-    neighborhood = forms.CharField(max_length=200,required=False)
     cross = forms.CharField(max_length=200,required=False)
     city = forms.ModelChoiceField(queryset=City.objects.all(), required=False)
     latitude = forms.FloatField(required=False)
@@ -169,7 +214,7 @@ class HappyPlaceForm(ModelForm):
     
     class Meta:
         model = HappyPlace
-        fields = ['place_id', 'name', 'address', 'neighborhood', 'cross', 'city', 'latitude', 'longitude', 'site', 'phone']
+        fields = ['place_id', 'name', 'neighborhoodName', 'address', 'cross', 'city', 'latitude', 'longitude', 'site', 'phone']
         
 class HappyHourForm(ModelForm):
     
